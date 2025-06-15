@@ -4,76 +4,75 @@ import { Tabs } from 'antd';
 import { useRef, useState } from 'react';
 type TargetKey = React.MouseEvent | React.KeyboardEvent | string;
 
-const initialItems = [
-    { label: 'Tab 1', children: 'Content of Tab 1', key: '1', closable: false},
-    { label: 'Tab 2', children: 'Content of Tab 2', key: '2' },
-    { label: 'Tab 3', children: 'Content of Tab 3', key: '3' },
-];
+interface TabItem {
+  label: string;
+  children: React.ReactNode;
+  key: string;
+  closable?: boolean;
+}
 
 const CardRightPanel = () => {
-    const [activeKey, setActiveKey] = useState(initialItems[0].key);
-    const [items, setItems] = useState(initialItems);
-    const newTabIndex = useRef(0);
+  const [items, setItems] = useState<TabItem[]>([]);
+  const [activeKey, setActiveKey] = useState<string>('');
+  const newTabIndex = useRef(0);
 
-    const onChange = (newActiveKey: string) => {
-        setActiveKey(newActiveKey);
+  const add = () => {
+    const newKey = `newTab${newTabIndex.current++}`;
+    const newTab: TabItem = {
+      label: `Tab ${items.length + 1}`,
+      children: `Content of Tab ${items.length + 1}`,
+      key: newKey,
     };
+    setItems([...items, newTab]);
+    setActiveKey(newKey);
+  };
 
-    const add = () => {
-        const newActiveKey = `newTab${newTabIndex.current++}`;
-        const newPanes = [...items];
-        newPanes.push({ label: 'Tab', children: 'Content of new Tab', key: newActiveKey });
-        setItems(newPanes);
-        setActiveKey(newActiveKey);
-    };
-
-    const remove = (targetKey: TargetKey) => {
-        let newActiveKey = activeKey;
-        let lastIndex = -1;
-        items.forEach((item, i) => {
-        if (item.key === targetKey) {
-            lastIndex = i - 1;
-        }
+  const remove = (targetKey: TargetKey) => {
+    let newActiveKey = activeKey;
+    let lastIndex = -1;
+    items.forEach((item, i) => {
+      if (item.key === targetKey) {
+        lastIndex = i - 1;
+      }
     });
 
-    const newPanes = items.filter((item) => item.key !== targetKey);
-        if (newPanes.length && newActiveKey === targetKey) {
-            if (lastIndex >= 0) {
-                newActiveKey = newPanes[lastIndex].key;
-            } else {
-                newActiveKey = newPanes[0].key;
-            }
-        }
-        setItems(newPanes);
-        setActiveKey(newActiveKey);
-    };
+    const newItems = items.filter((item) => item.key !== targetKey);
+    if (newItems.length && newActiveKey === targetKey) {
+      newActiveKey = newItems[lastIndex >= 0 ? lastIndex : 0].key;
+    } else if (!newItems.length) {
+      newActiveKey = '';
+    }
 
-    const onEdit = (
-        targetKey: React.MouseEvent | React.KeyboardEvent | string,
-        action: 'add' | 'remove',
-    ) => {
-        if (action === 'add') {
-        add();
-        } else {
-        remove(targetKey);
-        }
-    };
+    setItems(newItems);
+    setActiveKey(newActiveKey);
+  };
 
-    return (
-        <div className="flex flex-col items-start w-full h-full bg-gray-200 overflow-hidden">
-            <div className="w-full overflow-x-auto whitespace-nowrap">
-                <Tabs
-                type="editable-card"
-                onChange={onChange}
-                activeKey={activeKey}
-                onEdit={onEdit}
-                items={items}
-                hideAdd={items.length >= 6}
-                />
-            </div>
-        </div>
+  const onEdit = (targetKey: TargetKey, action: 'add' | 'remove') => {
+    if (action === 'add') {
+      add();
+    } else {
+      remove(targetKey);
+    }
+  };
 
-    );
-}
+  const onChange = (key: string) => {
+    setActiveKey(key);
+  };
+
+  return (
+    <div className="flex flex-col items-start w-full h-full bg-gray-200 overflow-hidden">
+      <div className="w-full overflow-x-auto whitespace-nowrap">
+        <Tabs
+          type="editable-card"
+          hideAdd={items.length >= 6}
+          activeKey={activeKey}
+          onChange={onChange}
+          onEdit={onEdit}
+          items={items}
+        />
+      </div>
+    </div>
+  );
+};
 
 export default CardRightPanel;
