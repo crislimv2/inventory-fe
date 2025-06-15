@@ -60,16 +60,19 @@ const CardRightPanel = () => {
     };
 
     return (
-        <div className="flex flex-col items-start w-full h-full bg-gray-200">
-            <Tabs
+        <div className="flex flex-col items-start w-full h-full bg-gray-200 overflow-hidden">
+            <div className="w-full overflow-x-auto whitespace-nowrap">
+                <Tabs
                 type="editable-card"
                 onChange={onChange}
                 activeKey={activeKey}
                 onEdit={onEdit}
                 items={items}
                 hideAdd={items.length >= 6}
-            />
+                />
+            </div>
         </div>
+
     );
 }
 
