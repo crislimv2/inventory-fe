@@ -3,7 +3,8 @@ import { useEffect, useState } from "react";
 import { Product } from "./interfaces/Product";
 import Image from "next/image";
 import { Button, Dropdown, Input, MenuProps, message, Space } from 'antd';
-import { CaretDownOutlined, CloseOutlined, DownOutlined, DropboxOutlined, SearchOutlined } from '@ant-design/icons';
+import { CaretDownOutlined, CloseOutlined, DropboxOutlined, SearchOutlined } from '@ant-design/icons';
+import { alphabet } from "./constants/Alphabet";
 const dummyData : Product[] =  [
     {
         id: "1",
@@ -206,8 +207,17 @@ const CardLeftPanel = () => {
         setSearch(e.target.value);
     };
 
+    const handleLetterClick = (letter: string) => {
+        const res = dummyData?.filter(product => product.name.startsWith(letter));
+        setSearch(letter);
+        if (res && res.length > 0) {
+            setProducts(res);
+        } else {
+            setProducts([]);
+        }
+    }
+
     useEffect(() => {
-        // Simulate fetching data from an API
         setTimeout(() => {
             setProducts(dummyData);
         }, 1000);
@@ -267,34 +277,44 @@ const CardLeftPanel = () => {
           </div>
         </div>
 
-        <div className=" p-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 h-screen overflow-y-auto">
-          {products ? products.map((product) => (
-            <div
-              key={product.id}
-              className="bg-white rounded-xl shadow p-4 flex flex-col"
-            >
-              {product.imageUrl && (
-                <Image
-                  src={'/1rcgKA.jpg'}
-                  alt={product.name}
-                  width={150}
-                  height={150}
-                  className="object-cover mb-2 rounded"
-                />
-              )}
-              <h2 className="text-lg font-bold">{product.name}</h2>
-              <p className="text-sm text-gray-600 mb-1">{product.description}</p>
-              <p className="text-sm text-gray-800 font-semibold">
-                Rp {product.price.toLocaleString("id-ID")}
-              </p>
-              <p className="text-sm text-gray-500">Stock: {product.quantity}</p>
-              {product.category && (
-                <span className="text-xs mt-1 inline-block bg-blue-100 text-blue-800 px-2 py-0.5 rounded">
-                  {product.category}
-                </span>
-              )}
+        <div className="flex">
+          {/* Alphabet Sidebar */}
+          <div className="border-x-2 px-1 sticky top-0 flex flex-col">
+            {alphabet.map((letter) => (
+              <button
+                key={letter}
+                className="hover:text-blue-500 px-1 text-gray-600 text-lg mb-1 cursor-pointer"
+                onClick={() => handleLetterClick(letter)}
+              >
+                {letter}
+              </button>
+            ))}
+          </div>
+
+          <div className="flex-1 overflow-y-hidden p-2 relative">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 overflow-y-hidden">
+              {products ? products.map((product) => (
+                <div
+                  key={product.id}
+                  className="bg-white rounded-xl shadow px-3 py-2"
+                >
+                  {product.imageUrl && (
+                    <Image
+                      src={'/1rcgKA.jpg'}
+                      alt={product.name}
+                      width={150}
+                      height={150}
+                      className="object-cover mb-2 rounded"
+                    />
+                  )}
+                  <h2 className="text-md font-bold text-black">{product.name}</h2>
+                  <p className="text-sm text-gray-800 font-semibold">
+                    Rp {product.price.toLocaleString("id-ID")}
+                  </p>
+                </div>
+              )) : []}
             </div>
-          )) : []}
+          </div>
         </div>
       </div>
     )

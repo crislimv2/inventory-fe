@@ -60,7 +60,7 @@ const CardRightPanel = () => {
   };
 
   return (
-    <div className="flex flex-col items-start w-full h-full bg-gray-200 overflow-hidden">
+    <div className="flex flex-col items-start w-full h-full bg-amber-400 overflow-hidden">
       <div className="w-full overflow-x-auto whitespace-nowrap">
         <Tabs
           type="editable-card"
