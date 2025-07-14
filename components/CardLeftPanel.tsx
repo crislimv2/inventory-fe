@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { dummyData, Product } from "./interfaces/Product";
 import Image from "next/image";
-import { Button, Dropdown, Input, MenuProps, message, Space, Tooltip } from 'antd';
+import { Button, Dropdown, Input, MenuProps, message, Space, Tag, Tooltip } from 'antd';
 import { CaretDownOutlined, CloseOutlined, DropboxOutlined, SearchOutlined, ShoppingCartOutlined } from '@ant-design/icons';
 import { alphabet } from "./constants/Alphabet";
 
@@ -46,6 +46,8 @@ const CardLeftPanel = () => {
     const [search, setSearch] = useState<string>("");
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [activeLetter, setActiveLetter] = useState('');
+    const [selectedUnits, setSelectedUnits] = useState<Record<string, string | null>>({});
+
 
 
     const handleDropdownOpenChange = (flag: boolean) => {
@@ -67,6 +69,20 @@ const CardLeftPanel = () => {
         }
     }
 
+    const getUnitInfo = (product : Product, unitId: string) => {
+      const unit = product.units?.find((u) => u.unitId === unitId);
+      return unit ? { name: unit.unitName, price: unit.price } : null;
+    };
+
+
+    const handleUnitToggle = (productId: string, unitId: string) => {
+      setSelectedUnits((prev) => ({
+        ...prev,
+        [productId]: prev[productId] === unitId ? null : unitId, // toggle logic
+      }));
+    };
+
+
     useEffect(() => {
         setTimeout(() => {
             setProducts(dummyData);
@@ -81,15 +97,30 @@ const CardLeftPanel = () => {
             );
             setProducts(filteredProducts);
         } else if (search === "") {
-            console.log("Resetting to all products");
             setProducts(dummyData);
         }
         else {
-            console.log("Filtering by letter:", activeLetter);
             const res = dummyData?.filter(product => product.name.toLocaleLowerCase().startsWith(search?.toLocaleLowerCase()));
             setProducts(res);
         }
     }, [search]);
+
+    useEffect(() => {
+      if (products && Array.isArray(products)) {
+        const defaults: Record<string, string> = {};
+
+        products.forEach((product) => {
+          const units = product.units ?? [];
+          if (units.length > 0 && !selectedUnits[product.id]) {
+            defaults[product.id] = units[0].unitId;
+          }
+        });
+
+        if (Object.keys(defaults).length > 0) {
+          setSelectedUnits((prev) => ({ ...prev, ...defaults }));
+        }
+      }
+    }, [products]);
 
     return (
       <div className="bg-gray-100">
@@ -176,20 +207,44 @@ const CardLeftPanel = () => {
                       className="object-cover mb-2 rounded"
                     />
                   )}
-                  <div className="px-2 py-1">
-                    <h2 className="text-md font-bold text-black">{product.name}</h2>
-                    <p className="text-sm text-gray-800 font-semibold">
-                      Rp 12.000
-                      {/* Rp {product.price.toLocaleString("id-ID")} */}
+                  <div className="px-2 py-1 flex flex-col gap-2">
+                    <h2 className="text-md font-bold text-black text-xl">
+                      {product.name}
+                      {/* {(() => {
+                        const unitId = selectedUnits[product.id];
+                        if (!unitId) return null;
+
+                        const unitName = getUnitName(product, unitId);
+                        return (
+                          <span className=""> - {unitName}</span>
+                        );
+                      })()} */}
+                    </h2>
+
+                    <p className=" text-gray-800 font-semibold text-xl">
+                      {(() => {
+                        const unitId = selectedUnits[product.id];
+                        if (!unitId) return "Rp -";
+
+                        const unitInfo = getUnitInfo(product, unitId);
+                        if (!unitInfo) return "Rp -";
+
+                        return `Rp ${unitInfo.price.toLocaleString("id-ID")} / (${unitInfo.name})`;
+                      })()}
                     </p>
                     <div>
-                      <p className="text-black">Unit:</p>
-                      <div className="flex flex-row">
+                      <div className="flex flex-wrap gap-2">
                         {product.units && product.units.length > 0 ? (
                           product.units.map((unit) => (
-                            <span key={unit.unitId} className="text-sm text-gray-600 block">
+                            <Tag.CheckableTag
+                              key={unit.unitId}
+                              className=""
+                              style={{ padding: "6px 12px", fontSize: "16px"}}
+                              checked={selectedUnits[product.id] === unit.unitId}
+                              onChange={() => handleUnitToggle(product.id, unit.unitId)}
+                            >
                               {unit.unitName}
-                            </span>
+                            </Tag.CheckableTag>
                           ))
                         ) : (
                           <span className="text-sm text-gray-600">Tidak ada unit</span>
