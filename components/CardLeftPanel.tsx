@@ -2,9 +2,11 @@
 import { useEffect, useState } from "react";
 import { dummyData, Product } from "./interfaces/Product";
 import Image from "next/image";
-import { Button, Dropdown, Input, MenuProps, message, Space, Tag, Tooltip } from 'antd';
-import { CaretDownOutlined, CloseOutlined, DropboxOutlined, SearchOutlined, ShoppingCartOutlined } from '@ant-design/icons';
+import { Button, Dropdown, Input, InputNumber, MenuProps, message, Space, Tag, Tooltip } from 'antd';
+import { CaretDownOutlined, CaretUpOutlined, CloseOutlined, DownCircleFilled, DropboxOutlined, SearchOutlined, ShoppingCartOutlined, UpCircleFilled } from '@ant-design/icons';
 import { alphabet } from "./constants/Alphabet";
+import { set } from "zod";
+import { ProductUnit } from "./interfaces/ProductUnit";
 
 const items: MenuProps['items'] = [
   {
@@ -29,8 +31,6 @@ const items: MenuProps['items'] = [
   },
 ];
 
-console.log(dummyData)
-
 const handleMenuClick: MenuProps['onClick'] = (e) => {
   message.info('Click on menu item.');
   console.log('click', e);
@@ -43,10 +43,22 @@ const menuProps = {
 
 const CardLeftPanel = () => {
     const  [products, setProducts] = useState<Product[]>();
+    const [cart, setCart] = useState<Product[]>([]);
     const [search, setSearch] = useState<string>("");
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [activeLetter, setActiveLetter] = useState('');
     const [selectedUnits, setSelectedUnits] = useState<Record<string, string | null>>({});
+    const [quantities, setQuantities] = useState<Record<string, number>>({});
+
+    const onSubmit = async (formData : any) => {
+      const payload = {
+        ...formData
+      }
+
+      console.log("Form submitted with data:", payload);
+
+      // Handle form submission logic here
+    };
 
 
 
@@ -70,8 +82,14 @@ const CardLeftPanel = () => {
     }
 
     const getUnitInfo = (product : Product, unitId: string) => {
-      const unit = product.units?.find((u) => u.unitId === unitId);
-      return unit ? { name: unit.unitName, price: unit.price } : null;
+      const selectedProduct = product.units?.find((u) => u.Id === unitId);
+      const unit = {
+        Id: selectedProduct?.Id || "",
+        product_id: product.id,
+        unitName: selectedProduct?.unitName || "",
+        price: selectedProduct?.price || 0,
+      };
+      return unit ?? null;
     };
 
 
@@ -80,6 +98,89 @@ const CardLeftPanel = () => {
         ...prev,
         [productId]: prev[productId] === unitId ? null : unitId, // toggle logic
       }));
+    };
+
+    useEffect(() => {
+      console.log("Cart updated:", cart);
+    }, [cart]);
+
+    const handleAddToCart = (productId: string) => {
+      const unitId = selectedUnits[productId];
+      if (!unitId) {
+        message.error("Please select a unit before adding to cart.");
+        return;
+      }
+
+      const quantity = quantities[productId] || 0;
+      if (quantity <= 0) {
+        message.error("Quantity must be greater than zero.");
+        return;
+      }
+
+      const product = products?.find((p) => p.id === productId);
+      if (!product) {
+        message.error("Product not found.");
+        return;
+      }
+
+      const unitInfo = getUnitInfo(product, unitId);
+      if (!unitInfo) {
+        message.error("Selected unit not found.");
+        return;
+      }
+
+      const newUnit = {
+        Id: unitId,
+        product_id: productId,
+        unitName: unitInfo.unitName,
+        price: unitInfo.price,
+        quantity: quantity,
+      };
+
+      setCart((prevCart) => {
+        const existingProductIndex = prevCart.findIndex((item) => item.id === productId);
+
+        // If product already exists in cart
+        if (existingProductIndex !== -1) {
+          const existingProduct = prevCart[existingProductIndex];
+
+          // Check if the unit already exists
+          const unitExists = existingProduct.units?.some((u) => u.Id === unitId);
+
+          if (unitExists) {
+            message.error("This product with the selected unit is already in the cart.");
+            return prevCart;
+        }
+
+        // Add new unit to existing product
+        const updatedUnits = [...(existingProduct.units || []), newUnit];
+        const updatedProduct = { ...existingProduct, units: updatedUnits };
+
+        const updatedCart = [...prevCart];
+        updatedCart[existingProductIndex] = updatedProduct;
+
+        message.success("Unit added to existing product in cart.");
+          return updatedCart;
+        }
+
+        // If product not in cart, add as new item
+        const newCartItem = {
+          id: product.id,
+          name: product.name,
+          description: product.description,
+          imageUrl: product.imageUrl,
+          category: product.category,
+          createdAt: product.createdAt ?? new Date(),
+          createdBy: product.createdBy ?? "system",
+          units: [newUnit],
+        };
+
+        message.success("Product added to cart.");
+          return [...prevCart, newCartItem];
+        });
+
+        // Reset quantity after adding to cart
+        setQuantities((prev) => ({ ...prev, [productId]: 0 }));
     };
 
 
@@ -112,7 +213,7 @@ const CardLeftPanel = () => {
         products.forEach((product) => {
           const units = product.units ?? [];
           if (units.length > 0 && !selectedUnits[product.id]) {
-            defaults[product.id] = units[0].unitId;
+            defaults[product.id] = units[0].Id;
           }
         });
 
@@ -210,15 +311,6 @@ const CardLeftPanel = () => {
                   <div className="px-2 py-1 flex flex-col gap-2">
                     <h2 className="text-md font-bold text-black text-xl">
                       {product.name}
-                      {/* {(() => {
-                        const unitId = selectedUnits[product.id];
-                        if (!unitId) return null;
-
-                        const unitName = getUnitName(product, unitId);
-                        return (
-                          <span className=""> - {unitName}</span>
-                        );
-                      })()} */}
                     </h2>
 
                     <p className=" text-gray-800 font-semibold text-xl">
@@ -229,38 +321,100 @@ const CardLeftPanel = () => {
                         const unitInfo = getUnitInfo(product, unitId);
                         if (!unitInfo) return "Rp -";
 
-                        return `Rp ${unitInfo.price.toLocaleString("id-ID")} / (${unitInfo.name})`;
+                        return `Rp ${unitInfo.price.toLocaleString("id-ID")} / (${unitInfo.unitName})`;
                       })()}
                     </p>
-                    <div>
+
+
+                    <div className="flex flex-col gap-3">
                       <div className="flex flex-wrap gap-2">
                         {product.units && product.units.length > 0 ? (
                           product.units.map((unit) => (
                             <Tag.CheckableTag
-                              key={unit.unitId}
-                              className=""
-                              style={{ padding: "6px 12px", fontSize: "16px"}}
-                              checked={selectedUnits[product.id] === unit.unitId}
-                              onChange={() => handleUnitToggle(product.id, unit.unitId)}
+                              key={unit.Id}
+                              className="bg-white font-semibold border-2"
+                              style={{ 
+                                padding: "6px 12px", 
+                                fontSize: "16px",
+                                borderRadius: "8px",
+                                borderWidth: "2px",
+                                borderColor: selectedUnits[product.id] === unit.Id ? '#1890ff' : '#d9d9d9',
+                              }}
+                              checked={selectedUnits[product.id] === unit.Id}
+                              onChange={() => {
+                                handleUnitToggle(product.id, unit.Id);
+                              }}
                             >
                               {unit.unitName}
                             </Tag.CheckableTag>
+
+                            
                           ))
                         ) : (
                           <span className="text-sm text-gray-600">Tidak ada unit</span>
                         )}
                       </div>
+
+                      <div className="flex items-center gap-2">
+                        <Button
+                          type="primary"
+                          size="small"
+                          variant="solid"
+                          shape="circle"
+                          icon={<CaretDownOutlined />}
+                          onClick={() => {
+                            const currentQuantity = quantities[product.id] || 0;
+                            setQuantities((prev) => ({
+                              ...prev,
+                              [product.id]: Math.max(0, currentQuantity - 1), // Prevent negative quantity
+                            }));
+                          }}
+                        />
+
+                        <InputNumber
+                          placeholder="qty"
+                          variant="outlined"
+                          className=""
+                          size="large"
+                          min={0}
+                          value={quantities[product.id] || 0}
+                          onChange={(value) => {
+                            setQuantities((prev) => ({
+                              ...prev,
+                              [product.id]: value || 0,
+                            }));
+                          }}
+                        />
+                        <Button
+                          type="primary"
+                          size="small"
+                          variant="solid"
+                          shape="circle"
+                          icon={<CaretUpOutlined />}
+                          onClick={() => {
+                            const currentQuantity = quantities[product.id] || 0;
+                            console.log("Current quantity:", currentQuantity);
+                            setQuantities((prev) => ({
+                              ...prev,
+                              [product.id]: currentQuantity + 1, // Increment quantity
+                            }));
+                          }}
+                        />
+                      </div>
+                      
                     </div>
 
                     <div className="flex justify-end mr-3 mt-3">
                       <Tooltip>
-                        <Button type="primary" size="large" variant="solid" shape="circle" icon={<ShoppingCartOutlined />}/>
+                        <Button onClick={() => handleAddToCart(product.id)} type="primary" htmlType="submit" size="large" variant="solid" shape="circle" icon={<ShoppingCartOutlined />}/>
                       </Tooltip>
                     </div>
                   </div>
                 </div>
               )) : []}
             </div>
+            
+
           </div>
         </div>
       </div>

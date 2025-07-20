@@ -3,12 +3,12 @@ import { dummyProductUnit, ProductUnit } from "./ProductUnit";
 export interface Product {
     id: string;
     name: string;
-    description: string;
+    description?: string;
     imageUrl?: string;
     category?: string;
     units?: ProductUnit[];
 
-    createdAt: Date;
+    createdAt?: Date;
     updatedAt?: Date;
     createdBy?: string;
     updatedBy?: string;
@@ -16,7 +16,7 @@ export interface Product {
 
 
 export const dummyData : Product[] =  [
-    {
+  {
     id: "802bec62-0de3-4f87-b7d2-707c74f78f5e",
     name: "Kapal Api Special Mix",
     description: "Kopi instan Kapal Api sachet 10 pcs.",
@@ -27,11 +27,27 @@ export const dummyData : Product[] =  [
     createdBy: "admin",
   },
   {
-    id: "2",
+    id: "702bec62-0de3-4f87-b7d2-707c74f78f5e",
     name: "Energen Cokelat",
     description: "Minuman sereal bergizi rasa cokelat isi 10 sachet.",
     imageUrl: "https://via.placeholder.com/150",
     category: "Minuman",
+    units: [
+      {
+        Id: "f93aef58-7754-4bc1-808a-ffa6fbbda987",
+        product_id: "702bec62-0de3-4f87-b7d2-707c74f78f5e",
+        unitName: "Sachet",
+        price: 5000,
+        quantity: 0,
+      },
+      {
+        Id: "c0c3da59-cca8-4142-81a5-579ecf9611c3",
+        product_id: "702bec62-0de3-4f87-b7d2-707c74f78f5e",
+        unitName: "Box",
+        price: 45000,
+        quantity: 0,
+      }
+    ],
     createdAt: new Date("2024-01-02"),
     createdBy: "admin",
   },
