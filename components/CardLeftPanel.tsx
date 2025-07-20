@@ -357,21 +357,39 @@ const CardLeftPanel = () => {
                       </div>
 
                       <div className="flex items-center gap-2">
-                        <Button
-                          type="primary"
-                          size="small"
-                          variant="solid"
-                          shape="circle"
-                          disabled={!selectedUnits[product.id]}
-                          icon={<CaretDownOutlined />}
-                          onClick={() => {
-                            const currentQuantity = quantities[product.id] || 0;
-                            setQuantities((prev) => ({
-                              ...prev,
-                              [product.id]: Math.max(0, currentQuantity - 1), // Prevent negative quantity
-                            }));
-                          }}
-                        />
+                        <div className="flex flex-row items-center gap-2">
+                          {/* <Button
+                            type="primary"
+                            size="small"
+                            variant="solid"
+                            shape="circle"
+                            disabled={!selectedUnits[product.id] || quantities[product.id] <= 0}
+                            // icon={<CaretDownOutlined />}
+                            onClick={() => {
+                              const currentQuantity = quantities[product.id] || 0;
+                              setQuantities((prev) => ({
+                                ...prev,
+                                [product.id]: Math.max(0, currentQuantity - 10), // Prevent negative quantity
+                              }));
+                            }}
+                          >-10</Button> */}
+                          <Button
+                            type="primary"
+                            size="middle"
+                            variant="solid"
+                            shape="circle"
+                            disabled={!selectedUnits[product.id] || quantities[product.id] <= 0 || quantities[product.id] === undefined}
+                            // icon={<CaretDownOutlined />}
+                            onClick={() => {
+                              const currentQuantity = quantities[product.id] || 0;
+                              setQuantities((prev) => ({
+                                ...prev,
+                                [product.id]: Math.max(0, currentQuantity - 1), // Prevent negative quantity
+                              }));
+                            }}
+                          >-1</Button>
+
+                        </div>
 
                         <InputNumber
                           placeholder="qty"
@@ -388,29 +406,57 @@ const CardLeftPanel = () => {
                             }));
                           }}
                         />
-                        <Button
-                          type="primary"
-                          size="small"
-                          variant="solid"
-                          shape="circle"
-                          icon={<CaretUpOutlined />}
-                          disabled={!selectedUnits[product.id]}
-                          onClick={() => {
-                            const currentQuantity = quantities[product.id] || 0;
-                            console.log("Current quantity:", currentQuantity);
-                            setQuantities((prev) => ({
-                              ...prev,
-                              [product.id]: currentQuantity + 1, // Increment quantity
-                            }));
-                          }}
-                        />
+                        <div className="flex flex-row items-center gap-2">
+                          <Button
+                            type="primary"
+                            size="middle"
+                            variant="solid"
+                            shape="circle"
+                            // icon={<CaretUpOutlined />}
+                            disabled={!selectedUnits[product.id]}
+                            onClick={() => {
+                              const currentQuantity = quantities[product.id] || 0;
+                              console.log("Current quantity:", currentQuantity);
+                              setQuantities((prev) => ({
+                                ...prev,
+                                [product.id]: currentQuantity + 1, // Increment quantity
+                              }));
+                            }}
+                          >+1</Button>
+                          {/* <Button
+                            type="primary"
+                            size="small"
+                            variant="solid"
+                            shape="circle"
+                            // icon={<CaretUpOutlined />}
+                            disabled={!selectedUnits[product.id]}
+                            onClick={() => {
+                              const currentQuantity = quantities[product.id] || 0;
+                              console.log("Current quantity:", currentQuantity);
+                              setQuantities((prev) => ({
+                                ...prev,
+                                [product.id]: currentQuantity + 10, // Increment quantity
+                              }));
+                            }}
+                          >+10</Button> */}
+                        </div>
                       </div>
                       
                     </div>
 
                     <div className="flex justify-end mr-3 mt-3">
                       <Tooltip>
-                        <Button onClick={() => handleAddToCart(product.id)} type="primary" htmlType="submit" size="large" variant="solid" shape="circle" icon={<ShoppingCartOutlined />}/>
+                        <Button 
+                          onClick={() => handleAddToCart(product.id)} 
+                          type="primary" 
+                          htmlType="submit" 
+                          size="large" 
+                          variant="solid" 
+                          shape="circle" 
+                          icon={<ShoppingCartOutlined />}
+                          disabled={!selectedUnits[product.id] || (quantities[product.id] || 0) <= 0}
+
+                        />
                       </Tooltip>
                     </div>
                   </div>
