@@ -42,13 +42,14 @@ const menuProps = {
 };
 
 const CardLeftPanel = () => {
-    const  [products, setProducts] = useState<Product[]>();
+    const [products, setProducts] = useState<Product[]>();
     const [cart, setCart] = useState<Product[]>([]);
     const [search, setSearch] = useState<string>("");
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [activeLetter, setActiveLetter] = useState('');
     const [selectedUnits, setSelectedUnits] = useState<Record<string, string | null>>({});
     const [quantities, setQuantities] = useState<Record<string, number>>({});
+
 
     const onSubmit = async (formData : any) => {
       const payload = {
@@ -361,6 +362,7 @@ const CardLeftPanel = () => {
                           size="small"
                           variant="solid"
                           shape="circle"
+                          disabled={!selectedUnits[product.id]}
                           icon={<CaretDownOutlined />}
                           onClick={() => {
                             const currentQuantity = quantities[product.id] || 0;
@@ -377,6 +379,7 @@ const CardLeftPanel = () => {
                           className=""
                           size="large"
                           min={0}
+                          disabled={!selectedUnits[product.id]}
                           value={quantities[product.id] || 0}
                           onChange={(value) => {
                             setQuantities((prev) => ({
@@ -391,6 +394,7 @@ const CardLeftPanel = () => {
                           variant="solid"
                           shape="circle"
                           icon={<CaretUpOutlined />}
+                          disabled={!selectedUnits[product.id]}
                           onClick={() => {
                             const currentQuantity = quantities[product.id] || 0;
                             console.log("Current quantity:", currentQuantity);
