@@ -41,9 +41,14 @@ const menuProps = {
   onClick: handleMenuClick,
 };
 
-const CardLeftPanel = () => {
+interface CardLeftPanelProps {
+  cart: Product[];
+  setCart: React.Dispatch<React.SetStateAction<Product[]>>;
+}
+
+const CardLeftPanel = ({ cart, setCart }: CardLeftPanelProps) => {
     const [products, setProducts] = useState<Product[]>();
-    const [cart, setCart] = useState<Product[]>([]);
+    // const [cart, setCart] = useState<Product[]>([]);
     const [search, setSearch] = useState<string>("");
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [activeLetter, setActiveLetter] = useState('');
