@@ -1,12 +1,11 @@
 'use client'
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { dummyData, Product } from "./interfaces/Product";
 import Image from "next/image";
-import { Button, Dropdown, Input, InputNumber, MenuProps, message, Space, Tag, Tooltip } from 'antd';
-import { CaretDownOutlined, CaretUpOutlined, CloseOutlined, DownCircleFilled, DropboxOutlined, SearchOutlined, ShoppingCartOutlined, UpCircleFilled } from '@ant-design/icons';
+import { Button, Dropdown, Input, MenuProps, message, Space, Tag } from 'antd';
+import { CaretDownOutlined, CloseOutlined, DropboxOutlined, SearchOutlined } from '@ant-design/icons';
 import { alphabet } from "./constants/Alphabet";
-import { set } from "zod";
-import { ProductUnit } from "./interfaces/ProductUnit";
+import InputNumber from "./InputNumber";
 
 const items: MenuProps['items'] = [
   {
@@ -53,20 +52,8 @@ const CardLeftPanel = ({ cart, setCart }: CardLeftPanelProps) => {
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [activeLetter, setActiveLetter] = useState('');
     const [selectedUnits, setSelectedUnits] = useState<Record<string, string | null>>({});
-    const [quantities, setQuantities] = useState<Record<string, number>>({});
-
-
-    const onSubmit = async (formData : any) => {
-      const payload = {
-        ...formData
-      }
-
-      console.log("Form submitted with data:", payload);
-
-      // Handle form submission logic here
-    };
-
-
+    const [quantities, setQuantities] = useState<Record<string, Record<string, number>>>({});
+    const inputRefs = useRef<Record<string, HTMLInputElement | null>>({});
 
     const handleDropdownOpenChange = (flag: boolean) => {
       setIsDropdownOpen(flag);
@@ -100,11 +87,12 @@ const CardLeftPanel = ({ cart, setCart }: CardLeftPanelProps) => {
 
 
     const handleUnitToggle = (productId: string, unitId: string) => {
-      setSelectedUnits((prev) => ({
-        ...prev,
-        [productId]: prev[productId] === unitId ? null : unitId, // toggle logic
-      }));
+      setSelectedUnits((prev) => {
+        if (prev[productId] === unitId) return prev; // ✅ skip unnecessary updates
+        return { ...prev, [productId]: unitId };
+      });
     };
+
 
     useEffect(() => {
       console.log("Cart updated:", cart);
@@ -299,25 +287,27 @@ const CardLeftPanel = ({ cart, setCart }: CardLeftPanelProps) => {
           </div>
 
           <div className="flex-1 overflow-y-hidden p-2 relative">
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 overflow-y-hidden">
+            <div className="grid grid-cols-2 gap-4 overflow-y-hidden ">
               {products ? products.map((product) => (
                 <div
                   key={product.id}
-                  className="bg-white rounded-xl shadow py-2"
+                  className="bg-white rounded-xl shadow py-2 flex flex-row"
                 >
                   {product.imageUrl && (
-                    <Image
-                      src={'/1rcgKA.jpg'}
-                      alt={product.name}
-                      width={300}
-                      height={150}
-                      className="object-cover mb-2 rounded"
-                    />
+                    <div className="w-1/4">
+                      <Image
+                        src={'/1rcgKA.jpg'}
+                        alt={product.name}
+                        width={300}
+                        height={100}
+                        className="object-cover mb-2 rounded overflow-hidden"
+                      />
+                    </div>
                   )}
-                  <div className="px-2 py-1 flex flex-col gap-2">
-                    <h2 className="text-md font-bold text-black text-xl">
+                  <div className="py-1 flex flex-col w-3/4">
+                    <h1 className="text-md font-bold text-black text-2xl">
                       {product.name}
-                    </h2>
+                    </h1>
 
                     <p className=" text-gray-800 font-semibold text-xl">
                       {(() => {
@@ -331,125 +321,102 @@ const CardLeftPanel = ({ cart, setCart }: CardLeftPanelProps) => {
                       })()}
                     </p>
 
-
-                    <div className="flex flex-col gap-3">
-                      <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-row justify-center items-end overflow-x-hidden gap-3 mx-5 mt-3">
+                      <Button
+                        className="mr-2"
+                        type="primary"
+                        size="middle"
+                        variant="solid"
+                        shape="circle"
+                        // disabled={!selectedUnits[product.id] || quantities[product.id] <= 0 || quantities[product.id] === undefined}
+                        // icon={<CaretDownOutlined />}
+                        onClick={() => {
+                          const currentQuantity = quantities[product.id] || 0;
+                          // setQuantities((prev) => ({
+                          //   ...prev,
+                          //   [product.id]: Math.max(0, currentQuantity - 1), // Prevent negative quantity
+                          // }));
+                        }}
+                      >-1</Button>
+                      <div className="flex flex-row w-full overflow-x-scroll">
                         {product.units && product.units.length > 0 ? (
-                          product.units.map((unit) => (
-                            <Tag.CheckableTag
-                              key={unit.Id}
-                              className="bg-white font-semibold border-2"
-                              style={{ 
-                                padding: "6px 12px", 
-                                fontSize: "16px",
-                                borderRadius: "8px",
-                                borderWidth: "2px",
-                                borderColor: selectedUnits[product.id] === unit.Id ? '#1890ff' : '#d9d9d9',
-                              }}
-                              checked={selectedUnits[product.id] === unit.Id}
-                              onChange={() => {
-                                handleUnitToggle(product.id, unit.Id);
-                              }}
-                            >
-                              {unit.unitName}
-                            </Tag.CheckableTag>
+                          product.units.map((unit) => {
+                            const isSelected = selectedUnits[product.id] === unit.Id;
+                            const quantityValue = quantities?.[product.id]?.[unit.Id] || 0;
+                            const refKey = `${product.id}-${unit.Id}`;
 
-                            
-                          ))
+                            const handleChange = () => {
+                              handleUnitToggle(product.id, unit.Id);
+                              inputRefs.current[refKey]?.focus();
+                            };
+
+                            const handleQuantityChange = (val: number) => {
+                              setQuantities((prev) => ({
+                                ...prev,
+                                [product.id]: {
+                                  ...(prev[product.id] || {}),
+                                  [unit.Id]: val,
+                                },
+                              }));
+                            };
+
+                            return (
+                            <div className="flex flex-col m-0 p-0 items-center justify-items-center" key={unit.Id}>
+                              <Tag.CheckableTag
+                                className="bg-white font-semibold border-2"
+                                style={{ 
+                                  margin: "0px",
+                                  padding: "3px 5px",
+                                  width: "60px",
+                                  fontSize: "14px",
+                                  borderRadius: "0px",
+                                  borderBottomWidth: "1px",
+                                  borderColor: selectedUnits[product.id] === unit.Id ? '#1890ff' : '#d9d9d9',
+                                }}
+                                checked={isSelected}
+                                onChange={handleChange}
+                              >
+                                {unit.unitName}
+                              </Tag.CheckableTag>
+                              <InputNumber 
+                                ref={(el) => {
+                                  inputRefs.current[refKey] = el;
+                                }} 
+                                value={quantityValue} 
+                                onChange={handleQuantityChange} 
+                                onFocus={() => {
+                                  if(selectedUnits[product.id] !== unit.Id) {
+                                    handleUnitToggle(product.id, unit.Id);
+                                  }
+                                }}
+                              />
+                            </div>
+                            )
+                          })
                         ) : (
                           <span className="text-sm text-gray-600">Tidak ada unit</span>
                         )}
                       </div>
-
-                      <div className="flex items-center gap-2">
-                        <div className="flex flex-row items-center gap-2">
-                          {/* <Button
-                            type="primary"
-                            size="small"
-                            variant="solid"
-                            shape="circle"
-                            disabled={!selectedUnits[product.id] || quantities[product.id] <= 0}
-                            // icon={<CaretDownOutlined />}
-                            onClick={() => {
-                              const currentQuantity = quantities[product.id] || 0;
-                              setQuantities((prev) => ({
-                                ...prev,
-                                [product.id]: Math.max(0, currentQuantity - 10), // Prevent negative quantity
-                              }));
-                            }}
-                          >-10</Button> */}
-                          <Button
-                            type="primary"
-                            size="middle"
-                            variant="solid"
-                            shape="circle"
-                            disabled={!selectedUnits[product.id] || quantities[product.id] <= 0 || quantities[product.id] === undefined}
-                            // icon={<CaretDownOutlined />}
-                            onClick={() => {
-                              const currentQuantity = quantities[product.id] || 0;
-                              setQuantities((prev) => ({
-                                ...prev,
-                                [product.id]: Math.max(0, currentQuantity - 1), // Prevent negative quantity
-                              }));
-                            }}
-                          >-1</Button>
-
-                        </div>
-
-                        <InputNumber
-                          placeholder="qty"
-                          variant="outlined"
-                          className=""
-                          size="large"
-                          min={0}
-                          disabled={!selectedUnits[product.id]}
-                          value={quantities[product.id] || 0}
-                          onChange={(value) => {
-                            setQuantities((prev) => ({
-                              ...prev,
-                              [product.id]: value || 0,
-                            }));
-                          }}
-                        />
-                        <div className="flex flex-row items-center gap-2">
-                          <Button
-                            type="primary"
-                            size="middle"
-                            variant="solid"
-                            shape="circle"
-                            // icon={<CaretUpOutlined />}
-                            disabled={!selectedUnits[product.id]}
-                            onClick={() => {
-                              const currentQuantity = quantities[product.id] || 0;
-                              console.log("Current quantity:", currentQuantity);
-                              setQuantities((prev) => ({
-                                ...prev,
-                                [product.id]: currentQuantity + 1, // Increment quantity
-                              }));
-                            }}
-                          >+1</Button>
-                          {/* <Button
-                            type="primary"
-                            size="small"
-                            variant="solid"
-                            shape="circle"
-                            // icon={<CaretUpOutlined />}
-                            disabled={!selectedUnits[product.id]}
-                            onClick={() => {
-                              const currentQuantity = quantities[product.id] || 0;
-                              console.log("Current quantity:", currentQuantity);
-                              setQuantities((prev) => ({
-                                ...prev,
-                                [product.id]: currentQuantity + 10, // Increment quantity
-                              }));
-                            }}
-                          >+10</Button> */}
-                        </div>
-                      </div>
-                      
+                      <Button
+                        className="ml-2"
+                        type="primary"
+                        size="middle"
+                        variant="solid"
+                        shape="circle"
+                        // icon={<CaretUpOutlined />}
+                        disabled={!selectedUnits[product.id]}
+                        // onClick={() => {
+                        //   const currentQuantity = quantities[product.id] || 0;
+                        //   console.log("Current quantity:", currentQuantity);
+                        //   setQuantities((prev) => ({
+                        //     ...prev,
+                        //     [product.id]: currentQuantity + 1, // Increment quantity
+                        //   }));
+                        // }}
+                      >+1</Button>
                     </div>
 
-                    <div className="flex justify-end mr-3 mt-3">
+                    {/* <div className="flex justify-end mr-3 mt-3">
                       <Tooltip>
                         <Button 
                           onClick={() => handleAddToCart(product.id)} 
@@ -458,12 +425,12 @@ const CardLeftPanel = ({ cart, setCart }: CardLeftPanelProps) => {
                           size="large" 
                           variant="solid" 
                           shape="circle" 
-                          icon={<ShoppingCartOutlined />}
+                          icon={<PlusOutlined />}
                           disabled={!selectedUnits[product.id] || (quantities[product.id] || 0) <= 0}
 
                         />
                       </Tooltip>
-                    </div>
+                    </div> */}
                   </div>
                 </div>
               )) : []}

@@ -50,6 +50,14 @@ export const dummyProductUnit: ProductUnit[] = [
         unitName: "Box",
         price: 45000,
         quantity: 0,
+    },
+    {
+        Id: "c1d2e3f4-a5b6-7890-cdef-123456789012",
+        product_id: "702bec62-0de3-4f87-b7d2-707c74f78f5e",
+        unitName: "Pack",
+        price: 15000,
+        quantity: 0,
     }
+
 
 ]
