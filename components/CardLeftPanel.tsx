@@ -2,8 +2,8 @@
 import { useEffect, useRef, useState } from "react";
 import { dummyData, Product } from "./interfaces/Product";
 import Image from "next/image";
-import { Button, Dropdown, Input, MenuProps, message, Space, Tag } from 'antd';
-import { CaretDownOutlined, CloseOutlined, DropboxOutlined, SearchOutlined } from '@ant-design/icons';
+import { Button, Dropdown, Input, MenuProps, message, Space, Tag, Tooltip } from 'antd';
+import { CaretDownOutlined, CloseOutlined, DropboxOutlined, PlusOutlined, SearchOutlined } from '@ant-design/icons';
 import { alphabet } from "./constants/Alphabet";
 import InputNumber from "./InputNumber";
 
@@ -98,66 +98,68 @@ const CardLeftPanel = ({ cart, setCart }: CardLeftPanelProps) => {
       console.log("Cart updated:", cart);
     }, [cart]);
 
-    const handleAddToCart = (productId: string) => {
-      const unitId = selectedUnits[productId];
-      if (!unitId) {
+    const handleAddToCart = (product: Product) => {
+      const productId = product.id;
+
+       const productQuantities = quantities[productId];
+      if (!productQuantities) {
         message.error("Please select a unit before adding to cart.");
         return;
       }
 
-      const quantity = quantities[productId] || 0;
-      if (quantity <= 0) {
-        message.error("Quantity must be greater than zero.");
+      // Get unit IDs with quantity > 0
+      const selectedUnitIds = Object.keys(productQuantities).filter(
+        (unitId) => productQuantities[unitId] > 0
+      );
+
+      if (selectedUnitIds.length === 0) {
+        message.error("Please select at least one unit with quantity > 0.");
         return;
       }
 
-      const product = products?.find((p) => p.id === productId);
-      if (!product) {
-        message.error("Product not found.");
-        return;
-      }
-
-      const unitInfo = getUnitInfo(product, unitId);
-      if (!unitInfo) {
-        message.error("Selected unit not found.");
-        return;
-      }
-
-      const newUnit = {
-        Id: unitId,
-        product_id: productId,
-        unitName: unitInfo.unitName,
-        price: unitInfo.price,
-        quantity: quantity,
-      };
+      const newUnits = selectedUnitIds.map((unitId) => {
+        const unitInfo = getUnitInfo(product, unitId);
+        return {
+          Id: unitId,
+          product_id: productId,
+          unitName: unitInfo?.unitName,
+          price: unitInfo?.price,
+          quantity: productQuantities[unitId],
+        };
+      });
 
       setCart((prevCart) => {
         const existingProductIndex = prevCart.findIndex((item) => item.id === productId);
-
-        // If product already exists in cart
+    
         if (existingProductIndex !== -1) {
           const existingProduct = prevCart[existingProductIndex];
+          const existingUnits = existingProduct.units || [];
+        
+          const updatedUnits = [...existingUnits];
 
-          // Check if the unit already exists
-          const unitExists = existingProduct.units?.some((u) => u.Id === unitId);
+          for (const newUnit of newUnits) {
+            const existingUnitIndex = updatedUnits.findIndex((u) => u.Id === newUnit.Id);
+            if (existingUnitIndex !== -1) {
+              // ✅ Update quantity
+              updatedUnits[existingUnitIndex] = {
+                ...updatedUnits[existingUnitIndex],
+                quantity: updatedUnits[existingUnitIndex].quantity + newUnit.quantity,
+              };
+            } else {
+              // ✅ Add new unit
+              updatedUnits.push(newUnit);
+            }
+          }
 
-          if (unitExists) {
-            message.error("This product with the selected unit is already in the cart.");
-            return prevCart;
-        }
+          const updatedProduct = { ...existingProduct, units: updatedUnits };
+          const updatedCart = [...prevCart];
+          updatedCart[existingProductIndex] = updatedProduct;
 
-        // Add new unit to existing product
-        const updatedUnits = [...(existingProduct.units || []), newUnit];
-        const updatedProduct = { ...existingProduct, units: updatedUnits };
-
-        const updatedCart = [...prevCart];
-        updatedCart[existingProductIndex] = updatedProduct;
-
-        message.success("Unit added to existing product in cart.");
+          message.success("Units added to existing product in cart.");
           return updatedCart;
         }
 
-        // If product not in cart, add as new item
+        // Product not in cart, create new item
         const newCartItem = {
           id: product.id,
           name: product.name,
@@ -166,15 +168,21 @@ const CardLeftPanel = ({ cart, setCart }: CardLeftPanelProps) => {
           category: product.category,
           createdAt: product.createdAt ?? new Date(),
           createdBy: product.createdBy ?? "system",
-          units: [newUnit],
+          units: newUnits,
         };
 
-        message.success("Product added to cart.");
-          return [...prevCart, newCartItem];
-        });
+        message.success("Product with selected units added to cart.");
+        return [...prevCart, newCartItem];
+      });
 
-        // Reset quantity after adding to cart
-        setQuantities((prev) => ({ ...prev, [productId]: 0 }));
+      // Reset quantity for the selected units
+      setQuantities((prev) => ({
+        ...prev,
+        [productId]: {
+          ...prev[productId],
+          ...Object.fromEntries(selectedUnitIds.map((unitId) => [unitId, 0])),
+        },
+      }));
     };
 
 
@@ -294,17 +302,17 @@ const CardLeftPanel = ({ cart, setCart }: CardLeftPanelProps) => {
                   className="bg-white rounded-xl shadow py-2 flex flex-row"
                 >
                   {product.imageUrl && (
-                    <div className="w-1/4">
+                    <div className={`w-[35%] h-full bg-amber-300`}>
                       <Image
                         src={'/1rcgKA.jpg'}
                         alt={product.name}
-                        width={300}
+                        width={500}
                         height={100}
-                        className="object-cover mb-2 rounded overflow-hidden"
+                        className="object-cover mb-2 rounded overflow-hidden h-full w-full"
                       />
                     </div>
                   )}
-                  <div className="py-1 flex flex-col w-3/4">
+                  <div className={`py-1 flex flex-col w-[65%]`}>
                     <h1 className="text-md font-bold text-black text-2xl">
                       {product.name}
                     </h1>
@@ -342,7 +350,7 @@ const CardLeftPanel = ({ cart, setCart }: CardLeftPanelProps) => {
                         {product.units && product.units.length > 0 ? (
                           product.units.map((unit) => {
                             const isSelected = selectedUnits[product.id] === unit.Id;
-                            const quantityValue = quantities?.[product.id]?.[unit.Id] || 0;
+                            const quantityValue = quantities?.[product.id]?.[unit.Id] || null;
                             const refKey = `${product.id}-${unit.Id}`;
 
                             const handleChange = () => {
@@ -416,21 +424,21 @@ const CardLeftPanel = ({ cart, setCart }: CardLeftPanelProps) => {
                       >+1</Button>
                     </div>
 
-                    {/* <div className="flex justify-end mr-3 mt-3">
+                    <div className="flex justify-end mr-3 mt-3">
                       <Tooltip>
                         <Button 
-                          onClick={() => handleAddToCart(product.id)} 
+                          onClick={() => handleAddToCart(product)} 
                           type="primary" 
                           htmlType="submit" 
                           size="large" 
                           variant="solid" 
                           shape="circle" 
                           icon={<PlusOutlined />}
-                          disabled={!selectedUnits[product.id] || (quantities[product.id] || 0) <= 0}
-
+                          disabled={!selectedUnits[product.id]}
+                          
                         />
                       </Tooltip>
-                    </div> */}
+                    </div>
                   </div>
                 </div>
               )) : []}
