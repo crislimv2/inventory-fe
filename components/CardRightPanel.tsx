@@ -23,24 +23,40 @@ const CardRightPanel = ({ cart }: CardRightPanelProps) => {
   const newTabIndex = useRef(0);
 
   useEffect(() => {
-    console.log('CardRightPanel mounted');
+    setItems((prevItems) =>
+      prevItems.map((tab) =>
+        tab.key === activeKey
+          ? { ...tab, cartData: [...cart] }
+          : tab
+      )
+    );
   }, [cart]);
 
   const renderTab = (cartData: Product[]) => {
     console.log('Rendering tab with cart data:', cartData);
     return (
-      <div className="p-2">
+      <div className="w-full h-full px-2">
         {cartData.length === 0 ? (
           <p>No products in cart.</p>
         ) : (
-          <ul className="space-y-1">
-            {cartData.map((item) => (
-              <li key={item.id} className="border p-2 rounded bg-white">
-                <p><strong>{item.name}</strong></p>
-                <p>{item.description}</p>
-              </li>
+          <div>
+            {cartData.map((product, index) => (
+              <div key={product.id}>
+                <h1 className="text-md font-semibold text-black text-2xl">
+                  {`${index + 1}. ${product.name}`}
+                </h1>
+                {product?.units?.map((unit) => (
+                  <div key={unit.Id} className='flex flex-row w-full px-8'>
+                    <div className="flex flex-row w-1/4 justify-between">
+                      <p>{`${unit.quantity} / ${unit.unitName}`}</p>
+                      <p>{`x ${unit.price}`}</p>
+                    </div>
+                    <p className='w-3/4 flex justify-end'>{unit.price * unit.quantity}</p>
+                  </div>
+                ))}
+              </div>
             ))}
-          </ul>
+          </div>
         )}
       </div>
     );
@@ -48,10 +64,11 @@ const CardRightPanel = ({ cart }: CardRightPanelProps) => {
 
   const add = () => {
     const newKey = `newTab${newTabIndex.current++}`;
+    const newCart : Product[] = [];
     const newTab: TabItem = {
       label: `Tab ${items.length + 1}`,
       key: newKey,
-      cartData: cart,
+      cartData: newCart,
     };
     setItems([...items, newTab]);
     setActiveKey(newKey);

@@ -1,5 +1,3 @@
-import { UUID } from "crypto";
-
 export interface ProductUnit {
     Id: string;
     product_id: string; // UUID of the product this unit belongs to

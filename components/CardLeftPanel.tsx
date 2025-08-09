@@ -339,11 +339,17 @@ const CardLeftPanel = ({ cart, setCart }: CardLeftPanelProps) => {
                         // disabled={!selectedUnits[product.id] || quantities[product.id] <= 0 || quantities[product.id] === undefined}
                         // icon={<CaretDownOutlined />}
                         onClick={() => {
-                          const currentQuantity = quantities[product.id] || 0;
-                          // setQuantities((prev) => ({
-                          //   ...prev,
-                          //   [product.id]: Math.max(0, currentQuantity - 1), // Prevent negative quantity
-                          // }));
+                          const unitId = selectedUnits[product.id];
+                          if (!unitId) return; // no unit selected
+                          if (quantities[product.id]?.[unitId] >= 1) {
+                            setQuantities((prev) => ({
+                              ...prev,
+                              [product.id]: {
+                                ...(prev[product.id] || {}),
+                                [unitId]: (prev[product.id]?.[unitId] || 0) - 1
+                              }
+                            }));
+                          }
                         }}
                       >-1</Button>
                       <div className="flex flex-row w-full overflow-x-scroll">
@@ -413,14 +419,18 @@ const CardLeftPanel = ({ cart, setCart }: CardLeftPanelProps) => {
                         shape="circle"
                         // icon={<CaretUpOutlined />}
                         disabled={!selectedUnits[product.id]}
-                        // onClick={() => {
-                        //   const currentQuantity = quantities[product.id] || 0;
-                        //   console.log("Current quantity:", currentQuantity);
-                        //   setQuantities((prev) => ({
-                        //     ...prev,
-                        //     [product.id]: currentQuantity + 1, // Increment quantity
-                        //   }));
-                        // }}
+                        onClick={() => {
+                          const unitId = selectedUnits[product.id];
+                          if (!unitId) return; // no unit selected
+
+                          setQuantities((prev) => ({
+                            ...prev,
+                            [product.id]: {
+                              ...(prev[product.id] || {}),
+                              [unitId]: (prev[product.id]?.[unitId] || 0) + 1
+                            }
+                          }));
+                        }}
                       >+1</Button>
                     </div>
 
