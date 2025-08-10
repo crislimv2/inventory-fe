@@ -1,6 +1,6 @@
 'use client';
 
-import { Tabs } from 'antd';
+import { Input, InputNumber, Space, Tabs } from 'antd';
 import { useEffect, useRef, useState } from 'react';
 import { Product } from './interfaces/Product';
 type TargetKey = React.MouseEvent | React.KeyboardEvent | string;
@@ -32,35 +32,106 @@ const CardRightPanel = ({ cart }: CardRightPanelProps) => {
     );
   }, [cart]);
 
+  useEffect(() => {
+    add();
+  }, [])
+
   const renderTab = (cartData: Product[]) => {
-    console.log('Rendering tab with cart data:', cartData);
     return (
-      <div className="w-full h-full px-2">
-        {cartData.length === 0 ? (
-          <p>No products in cart.</p>
-        ) : (
-          <div>
-            {cartData.map((product, index) => (
-              <div key={product.id}>
+      <div className="w-full h-full flex flex-col px-2">
+        {/* Scrollable list */}
+        <div className="flex-1 overflow-y-auto">
+          {cartData.length === 0 ? (
+            <p>No products in cart.</p>
+          ) : (
+            cartData.map((product, index) => (
+              <div key={product.id} className="py-1">
                 <h1 className="text-md font-semibold text-black text-2xl">
                   {`${index + 1}. ${product.name}`}
                 </h1>
                 {product?.units?.map((unit) => (
-                  <div key={unit.Id} className='flex flex-row w-full px-8'>
-                    <div className="flex flex-row w-1/4 justify-between">
-                      <p>{`${unit.quantity} / ${unit.unitName}`}</p>
-                      <p>{`x ${unit.price}`}</p>
+                  <div key={unit.Id} className="flex flex-row w-full px-6 text-lg items-center">
+                    <div className="flex flex-row w-3/4 items-center gap-5">
+                      <div className='flex flex-row justify-between items-center'>
+                        <Space direction="vertical">
+                          <InputNumber
+                            defaultValue={unit.quantity}
+                            min={1}
+                            max={999}
+                            controls={false}
+                            style={{ width: 50 }}
+                          />
+                        </Space>
+                        <p className="">x</p>
+                      </div>
+                      {/* <p className="w-1/6">{`${unit.quantity}  x`}</p> */}
+                      <div className=''>
+                        <Space direction="vertical">
+                          <InputNumber 
+                            controls={false}
+                            addonBefore="Rp" 
+                            addonAfter={unit.unitName}
+                            defaultValue={unit.price} 
+                            formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                            onChange={(newPrice) => {
+                              setItems((prevItems) =>
+                                prevItems.map((tab) =>
+                                  tab.key === activeKey
+                                    ? {
+                                        ...tab,
+                                        cartData: tab.cartData.map((p) =>
+                                          p.id === product.id
+                                            ? {
+                                                ...p,
+                                                units: p.units?.map((u) =>
+                                                  u.Id === unit.Id ? { ...u, price: Number(newPrice) || 0 } : u
+                                                ),
+                                              }
+                                            : p
+                                        ),
+                                      }
+                                    : tab
+                                )
+                              );
+                            }}
+                          />  
+                        </Space>
+                      </div>
+                      {/* <p className="w-5/6">{`x Rp. ${unit.price.toLocaleString("id-ID")} / (${unit.unitName})`}</p> */}
                     </div>
-                    <p className='w-3/4 flex justify-end'>{unit.price * unit.quantity}</p>
+                    <p className="w-1/4 flex justify-end">
+                      Rp. {(unit.price * unit.quantity).toLocaleString("id-ID")}
+                    </p>
                   </div>
                 ))}
               </div>
-            ))}
-          </div>
-        )}
+            ))
+          )}
+        </div>
+
+        {/* Total at bottom */}
+        <div className="flex flex-row w-full justify-between border-t border-black mt-2 pt-2 mb-16">
+          <p className="w-3/4 text-lg font-semibold">Total</p>
+          <p className="w-1/4 text-lg font-semibold flex justify-center">
+            Rp. {cartData
+              .reduce(
+                (total, product) =>
+                  total +
+                  (product?.units
+                    ? product.units.reduce(
+                        (sum, unit) => sum + unit.price * unit.quantity,
+                        0
+                      )
+                    : 0),
+                0
+              )
+              .toLocaleString("id-ID")}
+          </p>
+        </div>
       </div>
     );
   };
+
 
   const add = () => {
     const newKey = `newTab${newTabIndex.current++}`;
@@ -69,6 +140,7 @@ const CardRightPanel = ({ cart }: CardRightPanelProps) => {
       label: `Tab ${items.length + 1}`,
       key: newKey,
       cartData: newCart,
+      closable: false
     };
     setItems([...items, newTab]);
     setActiveKey(newKey);
@@ -107,20 +179,19 @@ const CardRightPanel = ({ cart }: CardRightPanelProps) => {
   };
 
   return (
-    <div className="flex flex-col items-start w-full h-full bg-gray-200 overflow-hidden">
-      <div className="w-full overflow-x-auto whitespace-nowrap">
-        <Tabs
-          type="editable-card"
-          hideAdd={items.length >= 6}
-          activeKey={activeKey}
-          onChange={onChange}
-          onEdit={onEdit}
-          items={items.map((item) => ({
-            ...item,
-            children: renderTab(item.cartData),
-          }))}
-        />
-      </div>
+    <div className="w-full h-full bg-gray-200">
+      <Tabs
+        type="editable-card"
+        hideAdd={true}
+        activeKey={activeKey}
+        onChange={onChange}
+        onEdit={onEdit}
+        items={items.map((item) => ({
+          ...item,
+          children: renderTab(item.cartData),
+        }))}
+        className='h-full'
+      />
     </div>
   );
 };

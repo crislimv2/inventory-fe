@@ -1,3 +1,4 @@
+import { uuid } from "zod";
 import { dummyProductUnit, ProductUnit } from "./ProductUnit";
 
 export interface Product {
@@ -57,7 +58,29 @@ export const dummyData : Product[] =  [
     description: "Mi instan goreng isi 5 pcs.",
     imageUrl: "https://via.placeholder.com/150",
     category: "Makanan",
-    units: [],
+    units: [
+      {
+        Id: "f93aef58-7754-4bc1-808a-ffa6fbbda987",
+        product_id: "3",
+        unitName: "Pcs",
+        price: 3000,
+        quantity: 0,
+      },
+      {
+        Id: "cf9c0494-e659-4d90-9d1c-8b530b6df34b",
+        product_id: "3",
+        unitName: "Pack",
+        price: 12000,
+        quantity: 0,
+      },
+      {
+        Id: "1d1424a5-c52a-4a9b-b9ee-0dde1deb4845",
+        product_id: "3",
+        unitName: "Dus",
+        price: 100000,
+        quantity: 0,
+      }
+    ],
     createdAt: new Date("2024-01-03"),
     createdBy: "admin",
   },
@@ -67,7 +90,22 @@ export const dummyData : Product[] =  [
     description: "Sabun batang antiseptik Lifebuoy 85g.",
     imageUrl: "https://via.placeholder.com/150",
     category: "Kebersihan",
-    units: [],
+    units: [
+      {
+        Id: "0774c8d5-c614-48b1-a1e2-545f2219c7bc",
+        product_id: "4",
+        unitName: "Pcs",
+        price: 3000,
+        quantity: 0,
+      },
+      {
+        Id: "c0c3da59-cca8-4142-81a5-579ecf9611c3",
+        product_id: "4",
+        unitName: "Dus",
+        price: 500000,
+        quantity: 0,
+      }
+    ],
     createdAt: new Date("2024-01-04"),
     createdBy: "admin",
   },
@@ -77,7 +115,29 @@ export const dummyData : Product[] =  [
     description: "Deterjen cair 1.6L pouch.",
     imageUrl: "https://via.placeholder.com/150",
     category: "Kebersihan",
-    units: [],
+    units: [
+      {
+        Id: "05230b3c-0402-4d48-aee0-823cce957517",
+        product_id: "5",
+        unitName: "Lusin",
+        price: 20000,
+        quantity: 0,
+      },
+      {
+        Id: "cf9c0494-e659-4d90-9d1c-8b530b6df34b",
+        product_id: "5",
+        unitName: "Pack",
+        price: 12000,
+        quantity: 0,
+      },
+      {
+        Id: "1d1424a5-c52a-4a9b-b9ee-0dde1deb4845",
+        product_id: "5",
+        unitName: "Dus",
+        price: 100000,
+        quantity: 0,
+      }
+    ],
     createdAt: new Date("2024-01-05"),
     createdBy: "admin",
   },
@@ -87,7 +147,29 @@ export const dummyData : Product[] =  [
     description: "Rokok filter isi 16 batang.",
     imageUrl: "https://via.placeholder.com/150",
     category: "Rokok",
-    units: [],
+    units: [
+      {
+        Id: "f93aef58-7754-4bc1-808a-ffa6fbbda987",
+        product_id: "6",
+        unitName: "Pcs",
+        price: 3000,
+        quantity: 0,
+      },
+      {
+        Id: "cf9c0494-e659-4d90-9d1c-8b530b6df34b",
+        product_id: "6",
+        unitName: "Pack",
+        price: 12000,
+        quantity: 0,
+      },
+      {
+        Id: "1d1424a5-c52a-4a9b-b9ee-0dde1deb4845",
+        product_id: "6",
+        unitName: "Dus",
+        price: 100000,
+        quantity: 0,
+      }
+    ],
     createdAt: new Date("2024-01-06"),
     createdBy: "admin",
   },
@@ -97,7 +179,29 @@ export const dummyData : Product[] =  [
     description: "Minuman ion botol 500ml.",
     imageUrl: "https://via.placeholder.com/150",
     category: "Minuman",
-    units: [],
+    units: [
+      {
+        Id: "f93aef58-7754-4bc1-808a-ffa6fbbda987",
+        product_id: "7",
+        unitName: "Pcs",
+        price: 3000,
+        quantity: 0,
+      },
+      {
+        Id: "cf9c0494-e659-4d90-9d1c-8b530b6df34b",
+        product_id: "7",
+        unitName: "Pack",
+        price: 12000,
+        quantity: 0,
+      },
+      {
+        Id: "1d1424a5-c52a-4a9b-b9ee-0dde1deb4845",
+        product_id: "7",
+        unitName: "Dus",
+        price: 100000,
+        quantity: 0,
+      }
+    ],
     createdAt: new Date("2024-01-07"),
     createdBy: "admin",
   },
@@ -107,7 +211,29 @@ export const dummyData : Product[] =  [
     description: "Tissue wajah 250 sheets.",
     imageUrl: "https://via.placeholder.com/150",
     category: "Kebutuhan Rumah",
-    units: [],
+    units: [
+      {
+        Id: "f93aef58-7754-4bc1-808a-ffa6fbbda987",
+        product_id: "8",
+        unitName: "Pcs",
+        price: 3000,
+        quantity: 0,
+      },
+      {
+        Id: "cf9c0494-e659-4d90-9d1c-8b530b6df34b",
+        product_id: "8",
+        unitName: "Pack",
+        price: 12000,
+        quantity: 0,
+      },
+      {
+        Id: "1d1424a5-c52a-4a9b-b9ee-0dde1deb4845",
+        product_id: "8",
+        unitName: "Dus",
+        price: 100000,
+        quantity: 0,
+      }
+    ],
     createdAt: new Date("2024-01-08"),
     createdBy: "admin",
   },

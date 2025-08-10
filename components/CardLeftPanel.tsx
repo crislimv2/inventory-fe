@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { dummyData, Product } from "./interfaces/Product";
 import Image from "next/image";
 import { Button, Dropdown, Input, MenuProps, message, Space, Tag, Tooltip } from 'antd';
-import { CaretDownOutlined, CloseOutlined, DropboxOutlined, PlusOutlined, SearchOutlined } from '@ant-design/icons';
+import { CaretDownOutlined, CloseOutlined, DropboxOutlined, PlusOutlined, SearchOutlined, ShoppingCartOutlined } from '@ant-design/icons';
 import { alphabet } from "./constants/Alphabet";
 import InputNumber from "./InputNumber";
 
@@ -352,7 +352,7 @@ const CardLeftPanel = ({ cart, setCart }: CardLeftPanelProps) => {
                           }
                         }}
                       >-1</Button>
-                      <div className="flex flex-row w-full overflow-x-scroll">
+                      <div className="flex flex-row overflow-x-scroll">
                         {product.units && product.units.length > 0 ? (
                           product.units.map((unit) => {
                             const isSelected = selectedUnits[product.id] === unit.Id;
@@ -375,7 +375,7 @@ const CardLeftPanel = ({ cart, setCart }: CardLeftPanelProps) => {
                             };
 
                             return (
-                            <div className="flex flex-col m-0 p-0 items-center justify-items-center" key={unit.Id}>
+                            <div className="flex flex-col m-0 p-0 items-center justify-items-center bg-amber-300" key={unit.Id}>
                               <Tag.CheckableTag
                                 className="bg-white font-semibold border-2"
                                 style={{ 
@@ -443,7 +443,7 @@ const CardLeftPanel = ({ cart, setCart }: CardLeftPanelProps) => {
                           size="large" 
                           variant="solid" 
                           shape="circle" 
-                          icon={<PlusOutlined />}
+                          icon={<ShoppingCartOutlined />}
                           disabled={!selectedUnits[product.id]}
                           
                         />
