@@ -3,6 +3,7 @@
 import { Input, InputNumber, Space, Tabs } from 'antd';
 import { useEffect, useRef, useState } from 'react';
 import { Product } from './interfaces/Product';
+import { ArrowDownOutlined, ArrowRightOutlined } from '@ant-design/icons';
 type TargetKey = React.MouseEvent | React.KeyboardEvent | string;
 
 interface TabItem {
@@ -47,15 +48,15 @@ const CardRightPanel = ({ cart }: CardRightPanelProps) => {
             cartData.map((product, index) => (
               <div key={product.id} className="py-1">
                 <div className="flex flex-row w-full items-center justify-between px-2">
-                  <h1 className="text-md font-semibold text-black text-2xl">
+                  <h1 className="lg:text-xl md:text-xs  font-semibold text-black ">
                     {`${index + 1}. ${product.name}`}
                   </h1>
 
                 </div>
                 {product?.units?.map((unit) => (
-                  <div key={unit.Id} className="flex flex-row w-full px-2 text-lg items-center">
-                    <div className="w-full items-center grid grid-cols-3">
-                      <div className='flex flex-row justify-start items-center pb-1'>
+                  <div key={unit.Id} className="flex flex-row w-full px-2 text-lg items-center justify-between flex-wrap">
+                    <div className="items-center flex ">
+                      <div className='flex flex-row justify-start items-center pb-1 grow'>
                         <Space direction="vertical">
                           <InputNumber
                             defaultValue={unit.quantity}
@@ -89,14 +90,16 @@ const CardRightPanel = ({ cart }: CardRightPanelProps) => {
                         <p className="">x</p>
                       </div>
                       {/* <p className="w-1/6">{`${unit.quantity}  x`}</p> */}
-                      <div className='col-span-2'>
+                      <div className='flex flex-row'>
                         <Space direction="vertical">
                           <InputNumber 
                             controls={false}
-                            addonBefore="Rp" 
-                            addonAfter={unit.unitName}
+                            addonAfter={
+                              <div className='w-9'>{unit.unitName}</div>
+                            }
                             defaultValue={unit.price} 
                             formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                            className={`lg:w-[70%] md:grow`}
                             onChange={(newPrice) => {
                               setItems((prevItems) =>
                                 prevItems.map((tab) =>
@@ -122,14 +125,21 @@ const CardRightPanel = ({ cart }: CardRightPanelProps) => {
                         </Space>
                       </div>
                     </div>
+                    
+                    <div className="text-sm flex grow justify-end ">
+                      <div className='lg:inline lg:pr-4 sm:hidden'>
+                        <ArrowRightOutlined />
+                      </div>
+                      <p>Rp. {(unit.price * unit.quantity).toLocaleString('id-ID')}</p>
+                    </div>
                   </div>
                 ))}
-                <div className="grid grid-cols-3 border-b border-black pb-2 px-3 border-dashed">
+                {/* <div className="grid grid-cols-3 border-b border-black pb-2 px-3 border-dashed">
                   <p className="font-semibold">Subtotal</p>
                   <p className="font-semibold grid-span-3 pl-2">
                     Rp. {product.units?.reduce((sum, unit) => sum + unit.price * unit.quantity, 0).toLocaleString('id-ID')}
                   </p>
-                </div>
+                </div> */}
               </div>
             ))
           )}
