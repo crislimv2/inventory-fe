@@ -13,10 +13,10 @@ const Card = () => {
 
   return (
     <div className="bg-white h-screen w-full flex">
-      <div className="h-screen w-3/4 overflow-y-scroll">
+      <div className="h-screen w-9/12 overflow-y-scroll">
         <CardLeftPanel cart={cart} setCart={setCart} />
       </div>
-      <div className="w-1/4 h-screen overflow-y-scroll">
+      <div className="w-3/12 h-screen overflow-y-scroll">
         <CardRightPanel cart={cart} />
       </div>
     </div>

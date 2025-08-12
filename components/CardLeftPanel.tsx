@@ -295,7 +295,7 @@ const CardLeftPanel = ({ cart, setCart }: CardLeftPanelProps) => {
           </div>
 
           <div className="flex-1 overflow-y-hidden p-2 relative">
-            <div className="grid grid-cols-2 gap-4 overflow-y-hidden ">
+            <div className="grid lg:grid-cols-2 md:grid-cols-1 gap-4 overflow-y-hidden ">
               {products ? products.map((product) => (
                 <div
                   key={product.id}
