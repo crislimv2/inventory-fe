@@ -1,9 +1,9 @@
 'use client';
 
-import { Input, InputNumber, Space, Tabs } from 'antd';
+import { InputNumber, Space, Tabs } from 'antd';
 import { useEffect, useRef, useState } from 'react';
 import { Product } from './interfaces/Product';
-import { ArrowDownOutlined, ArrowRightOutlined } from '@ant-design/icons';
+import { ArrowRightOutlined } from '@ant-design/icons';
 type TargetKey = React.MouseEvent | React.KeyboardEvent | string;
 
 interface TabItem {
@@ -48,7 +48,7 @@ const CardRightPanel = ({ cart }: CardRightPanelProps) => {
             cartData.map((product, index) => (
               <div key={product.id} className="py-1">
                 <div className="flex flex-row w-full items-center justify-between px-2">
-                  <h1 className="lg:text-xl md:text-xs  font-semibold text-black ">
+                  <h1 className="lg:text-xl md:text-xs  font-semibold text-black pb-3 ">
                     {`${index + 1}. ${product.name}`}
                   </h1>
 
@@ -126,11 +126,19 @@ const CardRightPanel = ({ cart }: CardRightPanelProps) => {
                       </div>
                     </div>
                     
-                    <div className="text-sm flex grow justify-end ">
-                      <div className='lg:inline lg:pr-4 sm:hidden'>
+                    <div className="text-sm flex grow  items-center justify-end">
+                      <div className='lg:hidden lg:pr-4 sm:inline'>
                         <ArrowRightOutlined />
                       </div>
-                      <p>Rp. {(unit.price * unit.quantity).toLocaleString('id-ID')}</p>
+                      <InputNumber
+                        style={{ width: '135px' }}
+                        className='opacity-40 font-semibold pointer-events-none'
+                        value={unit.price * unit.quantity}
+                        formatter={(value) => `Rp. ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                        controls={false}
+                        readOnly
+                      />
+                      {/* <p>Rp. {(unit.price * unit.quantity).toLocaleString('id-ID')}</p> */}
                     </div>
                   </div>
                 ))}
@@ -146,7 +154,7 @@ const CardRightPanel = ({ cart }: CardRightPanelProps) => {
         </div>
 
         {/* Total at bottom */}
-        <div className="flex flex-row w-full justify-between border-t border-black mt-2 pt-2 mb-16">
+        {/* <div className="flex flex-row w-full justify-between border-t border-black mt-2 pt-2 mb-16">
           <p className="w-3/4 text-lg font-semibold">Total</p>
           <p className="w-1/4 text-lg font-semibold flex justify-center">
             Rp. {cartData
@@ -163,7 +171,7 @@ const CardRightPanel = ({ cart }: CardRightPanelProps) => {
               )
               .toLocaleString("id-ID")}
           </p>
-        </div>
+        </div> */}
       </div>
     );
   };
