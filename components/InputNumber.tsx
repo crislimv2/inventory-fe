@@ -14,11 +14,9 @@ const InputNumber = forwardRef<HTMLInputElement, { value: number | null; onChang
             setIsFocused(true);
         }}
         onBlur={() => setIsFocused(false)}
-        className="w-[60px] p-1 border-gray-300 text-black rounded-b-xs"
+        className={`w-[60px] p-1 text-black border rounded-b-xs ${isFocused ? 'border-blue-500' : 'border-gray-300'} border-t-0 focus:outline-none`}
         placeholder="0"
         style={{
-            border: `1px solid ${isFocused ? '#1890ff' : '#ccc'}`,
-            borderTop: 'none',
             outline: 'none',
             appearance: 'textfield',
             MozAppearance: 'textfield',

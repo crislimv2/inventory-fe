@@ -55,6 +55,13 @@ export const dummyProductUnit: ProductUnit[] = [
         unitName: "Pack",
         price: 15000,
         quantity: 0,
+    },
+    {
+        Id: "d1e2f3g4-h5i6-7890-jklm-n12345678901",
+        product_id: "702bec62-0de3-4f87-b7d2-707c74f78f5e",
+        unitName: "Sachet",
+        price: 5000,
+        quantity: 0,
     }
 
 

@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { dummyData, Product } from "./interfaces/Product";
 import Image from "next/image";
 import { Button, Dropdown, Input, MenuProps, message, Space, Tag, Tooltip } from 'antd';
-import { CaretDownOutlined, CloseOutlined, DropboxOutlined, SearchOutlined, ShoppingCartOutlined } from '@ant-design/icons';
+import { CaretDownOutlined, CloseOutlined, DropboxOutlined, MinusOutlined, PlusOutlined, SearchOutlined, ShoppingCartOutlined } from '@ant-design/icons';
 import { alphabet } from "./constants/Alphabet";
 import InputNumber from "./InputNumber";
 
@@ -94,9 +94,9 @@ const CardLeftPanel = ({ cart, setCart }: CardLeftPanelProps) => {
     };
 
 
-    useEffect(() => {
-      console.log("Cart updated:", cart);
-    }, [cart]);
+    // useEffect(() => {
+    //   console.log("Cart updated:", cart);
+    // }, [cart]);
 
     const handleAddToCart = (product: Product) => {
       const productId = product.id;
@@ -302,17 +302,17 @@ const CardLeftPanel = ({ cart, setCart }: CardLeftPanelProps) => {
                   className="bg-white rounded-xl shadow py-2 flex flex-row"
                 >
                   {product.imageUrl && (
-                    <div className={`w-[35%] h-full bg-amber-300`}>
+                    <div className={`w-[30%] h-full bg-amber-300`}>
                       <Image
                         src={'/1rcgKA.jpg'}
                         alt={product.name}
-                        width={500}
+                        width={400}
                         height={100}
-                        className="object-cover mb-2 rounded overflow-hidden h-full w-full"
+                        className="object-cover mb-2 rounded overflow-hidden h-full w-full object-center"
                       />
                     </div>
                   )}
-                  <div className={`py-1 flex flex-col w-[65%]`}>
+                  <div className={`py-1 flex flex-col w-[70%]`}>
                     <h1 className="text-md font-bold text-black text-2xl">
                       {product.name}
                     </h1>
@@ -337,7 +337,7 @@ const CardLeftPanel = ({ cart, setCart }: CardLeftPanelProps) => {
                         variant="solid"
                         shape="circle"
                         // disabled={!selectedUnits[product.id] || quantities[product.id] <= 0 || quantities[product.id] === undefined}
-                        // icon={<CaretDownOutlined />}
+                        icon={<MinusOutlined />}
                         onClick={() => {
                           const unitId = selectedUnits[product.id];
                           if (!unitId) return; // no unit selected
@@ -351,7 +351,7 @@ const CardLeftPanel = ({ cart, setCart }: CardLeftPanelProps) => {
                             }));
                           }
                         }}
-                      >-1</Button>
+                      ></Button>
                       <div className="flex flex-row overflow-x-scroll">
                         {product.units && product.units.length > 0 ? (
                           product.units.map((unit) => {
@@ -417,7 +417,7 @@ const CardLeftPanel = ({ cart, setCart }: CardLeftPanelProps) => {
                         size="middle"
                         variant="solid"
                         shape="circle"
-                        // icon={<CaretUpOutlined />}
+                        icon={<PlusOutlined />}
                         disabled={!selectedUnits[product.id]}
                         onClick={() => {
                           const unitId = selectedUnits[product.id];
@@ -431,7 +431,7 @@ const CardLeftPanel = ({ cart, setCart }: CardLeftPanelProps) => {
                             }
                           }));
                         }}
-                      >+1</Button>
+                      ></Button>
                     </div>
 
                     <div className="flex justify-end mr-3 mt-3">

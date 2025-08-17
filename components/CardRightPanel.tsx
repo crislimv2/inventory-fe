@@ -39,7 +39,7 @@ const CardRightPanel = ({ cart }: CardRightPanelProps) => {
 
   const renderTab = (cartData: Product[]) => {
     return (
-      <div className="w-full h-full flex flex-col">
+      <div className="w-full h-full flex ">
         {/* Scrollable list */}
         <div className="flex-1 overflow-y-auto">
           {cartData.length === 0 ? (
@@ -48,7 +48,7 @@ const CardRightPanel = ({ cart }: CardRightPanelProps) => {
             cartData.map((product, index) => (
               <div key={product.id} className="py-1">
                 <div className="flex flex-row w-full items-center justify-between px-2">
-                  <h1 className="lg:text-xl md:text-xs  font-semibold text-black pb-3 ">
+                  <h1 className="lg:text-xl md:text-xs  font-semibold text-black pb-2 ">
                     {`${index + 1}. ${product.name}`}
                   </h1>
 
@@ -59,7 +59,7 @@ const CardRightPanel = ({ cart }: CardRightPanelProps) => {
                       <div className='flex flex-row justify-start items-center pb-1 grow'>
                         <Space direction="vertical">
                           <InputNumber
-                            defaultValue={unit.quantity}
+                            value={unit.quantity}
                             min={1}
                             max={999}
                             controls={false}
@@ -97,7 +97,7 @@ const CardRightPanel = ({ cart }: CardRightPanelProps) => {
                             addonAfter={
                               <div className='w-9'>{unit.unitName}</div>
                             }
-                            defaultValue={unit.price} 
+                            value={unit.price} 
                             formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
                             className={`lg:w-[70%] md:grow`}
                             onChange={(newPrice) => {
@@ -223,7 +223,7 @@ const CardRightPanel = ({ cart }: CardRightPanelProps) => {
   };
 
   return (
-    <div className="w-full h-full bg-gray-200">
+    <div className="w-full h-full bg-gray-200 ">
       <Tabs
         type="editable-card"
         hideAdd={true}
@@ -234,7 +234,6 @@ const CardRightPanel = ({ cart }: CardRightPanelProps) => {
           ...item,
           children: renderTab(item.cartData),
         }))}
-        className='h-full'
       />
     </div>
   );
