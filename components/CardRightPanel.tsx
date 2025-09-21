@@ -1,10 +1,8 @@
 'use client';
 
-import { Button, InputNumber, Space, Tabs } from 'antd';
 import { useEffect, useRef, useState } from 'react';
 import { Product } from './interfaces/Product';
-import { ArrowRightOutlined } from '@ant-design/icons';
-type TargetKey = React.MouseEvent | React.KeyboardEvent | string;
+import { ShoppingCartOutlined } from '@ant-design/icons';
 
 interface TabItem {
   label: string;
@@ -19,222 +17,108 @@ interface CardRightPanelProps {
 }
 
 const CardRightPanel = ({ cart }: CardRightPanelProps) => {
-  const [items, setItems] = useState<TabItem[]>([]);
-  const [activeKey, setActiveKey] = useState<string>('');
-  const newTabIndex = useRef(0);
+  const [isSelected, setIsSelected] = useState<boolean>(false);
+  const cardRef = useRef<HTMLDivElement | null>(null);
+  const [value, setValue] = useState(1);
 
+  // Detect clicks outside
   useEffect(() => {
-    setItems((prevItems) =>
-      prevItems.map((tab) =>
-        tab.key === activeKey
-          ? { ...tab, cartData: [...cart] }
-          : tab
-      )
-    );
-  }, [cart]);
-
-  useEffect(() => {
-    add();
-  }, [])
-
-  const renderTab = (cartData: Product[]) => {
-    return (
-      <div className="w-full h-full flex ">
-        {/* Scrollable list */}
-        <div className="flex-1 overflow-y-auto">
-          {cartData.length === 0 ? (
-            <p>No products in cart.</p>
-          ) : (
-            cartData.map((product, index) => (
-              <div key={product.id} className="py-1">
-                <div className="flex flex-row w-full items-center justify-between px-2">
-                  <h1 className="lg:text-xl md:text-xs  font-semibold text-black pb-2 ">
-                    {`${index + 1}. ${product.name}`}
-                  </h1>
-
-                </div>
-                {product?.units?.map((unit) => (
-                  <div key={unit.Id} className="flex flex-row w-full px-2 text-lg items-center justify-between flex-wrap">
-                    <div className="items-center flex ">
-                      <div className='flex flex-row justify-start items-center pb-1 grow'>
-                        <Space direction="vertical">
-                          <InputNumber
-                            value={unit.quantity}
-                            min={1}
-                            max={999}
-                            controls={false}
-                            style={{ width: 50 }}
-                            onChange={(newQuantity) => {
-                              setItems((prevItems) =>
-                                prevItems.map((tab) =>
-                                  tab.key === activeKey
-                                    ? {
-                                        ...tab,
-                                        cartData: tab.cartData.map((p) =>
-                                          p.id === product.id
-                                            ? {
-                                                ...p,
-                                                units: p.units?.map((u) =>
-                                                  u.Id === unit.Id ? { ...u, quantity: Number(newQuantity) || 0 } : u
-                                                ),
-                                              }
-                                            : p
-                                        ),
-                                      }
-                                    : tab
-                                )
-                              );
-                            }}
-                          />
-                        </Space>
-                        <p className="">x</p>
-                      </div>
-                      {/* <p className="w-1/6">{`${unit.quantity}  x`}</p> */}
-                      <div className='flex flex-row'>
-                        <Space direction="vertical">
-                          <InputNumber 
-                            controls={false}
-                            addonAfter={
-                              <div className='w-9'>{unit.unitName}</div>
-                            }
-                            value={unit.price} 
-                            formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-                            className={`lg:w-[70%] md:grow`}
-                            onChange={(newPrice) => {
-                              setItems((prevItems) =>
-                                prevItems.map((tab) =>
-                                  tab.key === activeKey
-                                    ? {
-                                        ...tab,
-                                        cartData: tab.cartData.map((p) =>
-                                          p.id === product.id
-                                            ? {
-                                                ...p,
-                                                units: p.units?.map((u) =>
-                                                  u.Id === unit.Id ? { ...u, price: Number(newPrice) || 0 } : u
-                                                ),
-                                              }
-                                            : p
-                                        ),
-                                      }
-                                    : tab
-                                )
-                              );
-                            }}
-                          />  
-                        </Space>
-                      </div>
-                    </div>
-                    
-                    <div className="text-sm flex grow  items-center justify-end">
-                      <div className='lg:hidden lg:pr-4 sm:inline'>
-                        <ArrowRightOutlined />
-                      </div>
-                      <InputNumber
-                        style={{ width: '135px' }}
-                        className='opacity-40 font-semibold pointer-events-none'
-                        value={unit.price * unit.quantity}
-                        formatter={(value) => `Rp. ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-                        controls={false}
-                        readOnly
-                      />
-                      {/* <p>Rp. {(unit.price * unit.quantity).toLocaleString('id-ID')}</p> */}
-                    </div>
-                  </div>
-                ))}
-                <div className="flex flex-row justify-end gap-16 border-b border-black pb-2 px-3 border-dashed">
-                  <p className="font-semibold">Subtotal</p>
-                  <p className="font-semibold grid-span-3 pl-2">
-                    Rp. {product.units?.reduce((sum, unit) => sum + unit.price * unit.quantity, 0).toLocaleString('id-ID')}
-                  </p>
-                </div>
-              </div>
-            ))
-          )}
-          {/* Total at bottom */}
-          <div className="flex flex-row w-full justify-between mt-2 pt-2 mb-16">
-            <p className="w-3/4 text-lg font-semibold">Total</p>
-            <p className="w-1/4 text-lg font-semibold flex justify-center">
-              Rp. {cartData
-                .reduce(
-                  (total, product) =>
-                    total +
-                    (product?.units
-                      ? product.units.reduce(
-                          (sum, unit) => sum + unit.price * unit.quantity,
-                          0
-                        )
-                      : 0),
-                  0
-                )
-                .toLocaleString("id-ID")}
-            </p>
-          </div>
-        </div>
-
-      </div>
-    );
-  };
-
-
-  const add = () => {
-    const newKey = `newTab${newTabIndex.current++}`;
-    const newCart : Product[] = [];
-    const newTab: TabItem = {
-      label: `Tab ${items.length + 1}`,
-      key: newKey,
-      cartData: newCart,
-      closable: false
-    };
-    setItems([...items, newTab]);
-    setActiveKey(newKey);
-  };
-
-  const remove = (targetKey: TargetKey) => {
-    let newActiveKey = activeKey;
-    let lastIndex = -1;
-    items.forEach((item, i) => {
-      if (item.key === targetKey) {
-        lastIndex = i - 1;
+    function handleClickOutside(event: MouseEvent) {
+      if (cardRef.current && !cardRef.current.contains(event.target as Node)) {
+        setIsSelected(false);
       }
-    });
-
-    const newItems = items.filter((item) => item.key !== targetKey);
-    if (newItems.length && newActiveKey === targetKey) {
-      newActiveKey = newItems[lastIndex >= 0 ? lastIndex : 0].key;
-    } else if (!newItems.length) {
-      newActiveKey = '';
     }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
-    setItems(newItems);
-    setActiveKey(newActiveKey);
-  };
 
-  const onEdit = (targetKey: TargetKey, action: 'add' | 'remove') => {
-    if (action === 'add') {
-      add();
-    } else {
-      remove(targetKey);
-    }
-  };
-
-  const onChange = (key: string) => {
-    setActiveKey(key);
-  };
-
+  console.log(cart);
   return (
-    <div className="w-full h-full bg-gray-200 overflow-y-auto">
-      <Tabs
-        type="editable-card"
-        hideAdd={true}
-        activeKey={activeKey}
-        onChange={onChange}
-        onEdit={onEdit}
-        items={items.map((item) => ({
-          ...item,
-          children: renderTab(item.cartData),
-        }))}
-      />
+    // <div className="bg-[#E5E7EB] w-full h-full overflow-hidden">
+    <div className="bg-[#f8f9fa] w-auto h-full px-4 py-4 text-[#495057]">
+      <div className={`${cart.length > 0 ? 'h-[60%]' : 'h-full'} w-full bg-[#f8f9fa]  rounded-sm`}>
+        {cart.length == 0 ? (
+            <div className='w-full h-full text-black flex justify-center items-center flex-col'>
+              <ShoppingCartOutlined style={{ fontSize: '60px' }} />
+              <p className='text-black flex justify-center items-center text-xl text-center font-semibold'>Start adding<br></br> products</p>
+            </div>
+        ) : (
+          <div className='flex flex-col h-full'>
+            <div className='p-2 flex-1' 
+              ref={cardRef}
+            >
+              {/* <p className='text-black flex justify-center items-center text-xl text-center font-semibold'>Products in Cart: {cart.length}</p> */}
+              <button
+                type="button"
+                className={`${isSelected ? 'bg-[#DDDBE8]' : 'hover:bg-[#e9ecef]'} cursor-pointer py-2 rounded-md w-full text-left`}
+                onClick={() => setIsSelected(!isSelected)}
+              >
+                <div className="flex px-3 justify-between">
+                  <p className="font-bold">Kapal Api Mix 23gr (Pack)</p>
+                  <p className="font-bold">Rp. 20,000.00</p>
+                </div>
+                <div className="flex px-3 gap-2">
+                  <input
+                    type="number"
+                    min="0"
+                    defaultValue="1"
+                    value={value}
+                    onChange={(e) => setValue(Number(e.target.value))}
+                    className="border border-gray-300 bg-white w-10 font-bold text-black"
+                  />
+                  <p>x</p>
+                  <p>Rp. 20,000.00</p> / <p>Pack</p>
+                </div>
+              </button>
+            </div>
+            <div className=' p-4 bg-[#f8f9fa]'>
+              <div className='flex justify-between'>
+                <p className='font-bold text-2xl '>Total</p>
+                <p className='font-bold text-2xl '>Rp. 20,000.00</p>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+      {cart.length > 0 && (
+        <div className="h-[40%] bg-white p-2">
+          <div className="grid grid-cols-4 gap-2">
+            {/* Row 1 */}
+            <button className="bg-white border rounded-md font-bold h-16">1</button>
+            <button className="bg-white border rounded-md font-bold h-16">2</button>
+            <button className="bg-white border rounded-md font-bold h-16">3</button>
+            <button className="bg-[#dddbe8] border rounded-md font-bold h-16">Qty</button>
+
+            {/* Row 2 */}
+            <button className="bg-white border rounded-md font-bold h-16">4</button>
+            <button className="bg-white border rounded-md font-bold h-16">5</button>
+            <button className="bg-white border rounded-md font-bold h-16">6</button>
+            <button className="bg-white border rounded-md font-bold h-16">%</button>
+
+            {/* Row 3 */}
+            <button className="bg-white border rounded-md font-bold h-16">7</button>
+            <button className="bg-white border rounded-md font-bold h-16">8</button>
+            <button className="bg-white border rounded-md font-bold h-16">9</button>
+            <button className="bg-white border rounded-md font-bold h-16">Price</button>
+
+            {/* Row 4 */}
+            <button className="bg-white border rounded-md font-bold h-16">0</button>
+            <button className="bg-white border rounded-md font-bold h-16">00</button>
+            <button className="bg-red-100 border rounded-md font-bold h-16">.</button>
+            <button className="bg-red-300 border rounded-md font-bold h-16">⌫</button>
+          </div>
+
+          {/* Payment button full width */}
+          <button className="bg-[#6f55a4] text-white font-bold py-3 mt-3 rounded-md w-full">
+            Payment
+          </button>
+        </div>
+      )}
+
+
     </div>
   );
 };

@@ -227,7 +227,7 @@ const CardLeftPanel = ({ cart, setCart }: CardLeftPanelProps) => {
 
     return (
       <div className="bg-gray-100">
-        <div className="bg-gray-200 p-4 mb-4">
+        {/* <div className="bg-gray-200 p-4 mb-4">
           <h1 className="text-2xl font-bold text-black">Product List</h1>
           <div className="flex justify-between items-center gap-20">
             <Dropdown 
@@ -277,11 +277,11 @@ const CardLeftPanel = ({ cart, setCart }: CardLeftPanelProps) => {
                 }}
             />
           </div>
-        </div>
+        </div> */}
 
         <div className="flex">
           {/* Alphabet Sidebar */}
-          <div className="border-x-2 rounded px-1 sticky top-12 left-0 flex flex-col h-screen mt-2">
+          {/* <div className="border-x-2 rounded px-1 sticky top-12 left-0 flex flex-col h-screen mt-2">
             {alphabet.map((letter) => (
               <button
                 key={letter}
@@ -292,7 +292,7 @@ const CardLeftPanel = ({ cart, setCart }: CardLeftPanelProps) => {
                 {letter}
               </button>
             ))}
-          </div>
+          </div> */}
 
           <div className="flex-1 overflow-y-hidden p-2 relative">
             <div className="grid lg:grid-cols-2 md:grid-cols-1 gap-4 overflow-y-hidden ">

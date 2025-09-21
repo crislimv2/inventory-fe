@@ -12,12 +12,12 @@ const Card = () => {
   // }, [cart]);
 
   return (
-    <div className="bg-white h-screen w-full flex ">
-      <div className="h-screen w-8/12 overflow-y-scroll">
-        <CardLeftPanel cart={cart} setCart={setCart} />
-      </div>
-      <div className="w-4/12 h-screen overflow-y-hidden">
+    <div className="bg-[#E9ECEF] h-screen w-full flex">
+      <div className="w-3/12 h-screen overflow-y-hidden">
         <CardRightPanel cart={cart} />
+      </div>
+      <div className="h-screen w-9/12 overflow-y-scroll">
+        <CardLeftPanel cart={cart} setCart={setCart} />
       </div>
     </div>
   );
