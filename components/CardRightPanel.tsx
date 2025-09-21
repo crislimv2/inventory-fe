@@ -1,6 +1,6 @@
 'use client';
 
-import { InputNumber, Space, Tabs } from 'antd';
+import { Button, InputNumber, Space, Tabs } from 'antd';
 import { useEffect, useRef, useState } from 'react';
 import { Product } from './interfaces/Product';
 import { ArrowRightOutlined } from '@ant-design/icons';
@@ -142,36 +142,36 @@ const CardRightPanel = ({ cart }: CardRightPanelProps) => {
                     </div>
                   </div>
                 ))}
-                {/* <div className="grid grid-cols-3 border-b border-black pb-2 px-3 border-dashed">
+                <div className="flex flex-row justify-end gap-16 border-b border-black pb-2 px-3 border-dashed">
                   <p className="font-semibold">Subtotal</p>
                   <p className="font-semibold grid-span-3 pl-2">
                     Rp. {product.units?.reduce((sum, unit) => sum + unit.price * unit.quantity, 0).toLocaleString('id-ID')}
                   </p>
-                </div> */}
+                </div>
               </div>
             ))
           )}
+          {/* Total at bottom */}
+          <div className="flex flex-row w-full justify-between mt-2 pt-2 mb-16">
+            <p className="w-3/4 text-lg font-semibold">Total</p>
+            <p className="w-1/4 text-lg font-semibold flex justify-center">
+              Rp. {cartData
+                .reduce(
+                  (total, product) =>
+                    total +
+                    (product?.units
+                      ? product.units.reduce(
+                          (sum, unit) => sum + unit.price * unit.quantity,
+                          0
+                        )
+                      : 0),
+                  0
+                )
+                .toLocaleString("id-ID")}
+            </p>
+          </div>
         </div>
 
-        {/* Total at bottom */}
-        {/* <div className="flex flex-row w-full justify-between border-t border-black mt-2 pt-2 mb-16">
-          <p className="w-3/4 text-lg font-semibold">Total</p>
-          <p className="w-1/4 text-lg font-semibold flex justify-center">
-            Rp. {cartData
-              .reduce(
-                (total, product) =>
-                  total +
-                  (product?.units
-                    ? product.units.reduce(
-                        (sum, unit) => sum + unit.price * unit.quantity,
-                        0
-                      )
-                    : 0),
-                0
-              )
-              .toLocaleString("id-ID")}
-          </p>
-        </div> */}
       </div>
     );
   };
@@ -223,7 +223,7 @@ const CardRightPanel = ({ cart }: CardRightPanelProps) => {
   };
 
   return (
-    <div className="w-full h-full bg-gray-200 ">
+    <div className="w-full h-full bg-gray-200 overflow-y-auto">
       <Tabs
         type="editable-card"
         hideAdd={true}

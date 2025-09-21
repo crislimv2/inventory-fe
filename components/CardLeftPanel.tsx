@@ -285,7 +285,7 @@ const CardLeftPanel = ({ cart, setCart }: CardLeftPanelProps) => {
             {alphabet.map((letter) => (
               <button
                 key={letter}
-                className={`px-1 text-lg mb-1 cursor-pointer transition-colors duration-150
+                className={`px-1 text-md mb-1 cursor-pointer transition-colors duration-150
                   ${activeLetter === letter ? "text-blue-600 font-semibold" : "text-gray-600 hover:text-blue-500"}`}
                 onClick={() => handleLetterClick(letter)}
               >
