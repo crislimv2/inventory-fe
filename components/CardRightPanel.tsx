@@ -67,7 +67,7 @@ const CardRightPanel = ({ cart }: CardRightPanelProps) => {
                     defaultValue="1"
                     value={value}
                     onChange={(e) => setValue(Number(e.target.value))}
-                    className="border border-gray-300 bg-white w-10 font-bold text-black"
+                    className="border border-gray-300 bg-white w-10 font-bold text-black text-sm"
                   />
                   <p>x</p>
                   <p>Rp. 20,000.00</p> / <p>Pack</p>
