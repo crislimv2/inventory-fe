@@ -1,11 +1,8 @@
 'use client'
 import { useEffect, useRef, useState } from "react";
 import { dummyData, Product } from "./interfaces/Product";
-import Image from "next/image";
-import { Button, Dropdown, Input, MenuProps, message, Space, Tag, Tooltip } from 'antd';
-import { CaretDownOutlined, CloseOutlined, DropboxOutlined, MinusOutlined, PlusOutlined, SearchOutlined, ShoppingCartOutlined } from '@ant-design/icons';
-import { alphabet } from "./constants/Alphabet";
-import InputNumber from "./InputNumber";
+import { Button, Card, MenuProps, message, Modal } from 'antd';
+import { Minus, Plus, ShoppingCart } from "lucide-react";
 
 const items: MenuProps['items'] = [
   {
@@ -54,6 +51,11 @@ const CardLeftPanel = ({ cart, setCart }: CardLeftPanelProps) => {
     const [selectedUnits, setSelectedUnits] = useState<Record<string, string | null>>({});
     const [quantities, setQuantities] = useState<Record<string, Record<string, number>>>({});
     const inputRefs = useRef<Record<string, HTMLInputElement | null>>({});
+    const [isProductModalOpen, setIsProductModalOpen] = useState(false);
+    const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+    const [productQuantities, setProductQuantities] = useState<Record<string, number>>({});
+    const hasSelectedUnits = Object.values(productQuantities).some(qty => qty > 0);
+
 
     const handleDropdownOpenChange = (flag: boolean) => {
       setIsDropdownOpen(flag);
@@ -225,239 +227,162 @@ const CardLeftPanel = ({ cart, setCart }: CardLeftPanelProps) => {
       }
     }, [products]);
 
+    const totalPrice = Object.entries(productQuantities).reduce((sum, [unitId, qty]) => {
+      const unit = products?.flatMap(p => p.units || []).find(u => u.Id === unitId);
+      return sum + (unit ? unit.price * qty : 0);
+    }, 0);
+
+    const updateQuantity = (unitId: string, delta: number) => {
+      setProductQuantities(prev => {
+        const current = prev[unitId] || 0;
+        const newQty = Math.max(0, current + delta);
+        if (newQty === 0) {
+          const { [unitId]: _, ...rest } = prev;
+          return rest;
+        }
+        return { ...prev, [unitId]: newQty };
+      });
+    };
+
     return (
-      <div className="bg-gray-100">
-        {/* <div className="bg-gray-200 p-4 mb-4">
-          <h1 className="text-2xl font-bold text-black">Product List</h1>
-          <div className="flex justify-between items-center gap-20">
-            <Dropdown 
-              menu={menuProps}  
-              trigger={['click']}
-              open={isDropdownOpen}
-              onOpenChange={handleDropdownOpenChange}
-            >
-              <Button 
-                size="large" 
-                icon={<DropboxOutlined className={`text-[17px]`} />} 
-                className="bg-white border border-gray-300 hover:bg-gray-50" 
-                style={{
-                  padding: "10px 18px",
-                  fontSize: "16px",
-                  height: "auto"
-                }}
+      <>
+        <div className="bg-gray-100">
+          <div className="grid xl:grid-cols-5 lg:grid-cols-4 md:grid-cols-3 sm:grid-cols-2 overflow-y-hidden">
+            {products ? products.map((product) => (
+              <div
+                key={product.id}
+                className="bg-white gap-2 py-2 px-1"
               >
-                <Space>
-                  <h3 className="text-black font-semibold text-xl">Category</h3>
-                  <CaretDownOutlined
-                    className={`transition-transform duration-200 ${isDropdownOpen ? "rotate-180" : ""}`}
-                    style={{ color: "black" }}
-                  />
-                </Space>
-              </Button>
-            </Dropdown>
-
-            <Input 
-              size="large" 
-              value={search}
-              onChange={handleSearchChange} 
-              placeholder="Cari Nama Barang.." 
-              suffix={
-                search!="" && (
-                  <CloseOutlined 
-                    className="cursor-pointer" 
-                    onClick={() => setSearch("")}
-                  />
-                )
-              }
-              prefix={<SearchOutlined className={`p-1 mr-1 text-[17px]`}/>} 
-              style={{
-                  padding: "12px 18px",
-                  fontSize: "16px",
-                  height: "auto"
-                }}
-            />
-          </div>
-        </div> */}
-
-        <div className="flex">
-          {/* Alphabet Sidebar */}
-          {/* <div className="border-x-2 rounded px-1 sticky top-12 left-0 flex flex-col h-screen mt-2">
-            {alphabet.map((letter) => (
-              <button
-                key={letter}
-                className={`px-1 text-md mb-1 cursor-pointer transition-colors duration-150
-                  ${activeLetter === letter ? "text-blue-600 font-semibold" : "text-gray-600 hover:text-blue-500"}`}
-                onClick={() => handleLetterClick(letter)}
-              >
-                {letter}
-              </button>
-            ))}
-          </div> */}
-
-          <div className="flex-1 overflow-y-hidden p-2 relative">
-            <div className="grid lg:grid-cols-2 md:grid-cols-1 gap-4 overflow-y-hidden ">
-              {products ? products.map((product) => (
-                <div
-                  key={product.id}
-                  className="bg-white rounded-xl shadow py-2 flex flex-row"
-                >
-                  {product.imageUrl && (
-                    <div className={`w-[30%] h-full bg-amber-300`}>
-                      <Image
-                        src={'/1rcgKA.jpg'}
-                        alt={product.name}
-                        width={400}
-                        height={100}
-                        className="object-cover mb-2 rounded overflow-hidden h-full w-full object-center"
-                      />
-                    </div>
-                  )}
-                  <div className={`py-1 flex flex-col w-[70%]`}>
-                    <h1 className="text-md font-bold text-black text-2xl">
-                      {product.name}
-                    </h1>
-
-                    <p className=" text-gray-800 font-semibold text-xl">
-                      {(() => {
-                        const unitId = selectedUnits[product.id];
-                        if (!unitId) return "Rp -";
-
-                        const unitInfo = getUnitInfo(product, unitId);
-                        if (!unitInfo) return "Rp -";
-
-                        return `Rp ${unitInfo.price.toLocaleString("id-ID")} / (${unitInfo.unitName})`;
-                      })()}
-                    </p>
-
-                    <div className="flex flex-row justify-center items-end overflow-x-hidden gap-3 mx-5 mt-3">
-                      <Button
-                        className="mr-2"
-                        type="primary"
-                        size="middle"
-                        variant="solid"
-                        shape="circle"
-                        // disabled={!selectedUnits[product.id] || quantities[product.id] <= 0 || quantities[product.id] === undefined}
-                        icon={<MinusOutlined />}
-                        onClick={() => {
-                          const unitId = selectedUnits[product.id];
-                          if (!unitId) return; // no unit selected
-                          if (quantities[product.id]?.[unitId] >= 1) {
-                            setQuantities((prev) => ({
-                              ...prev,
-                              [product.id]: {
-                                ...(prev[product.id] || {}),
-                                [unitId]: (prev[product.id]?.[unitId] || 0) - 1
-                              }
-                            }));
-                          }
-                        }}
-                      ></Button>
-                      <div className="flex flex-row overflow-x-scroll">
-                        {product.units && product.units.length > 0 ? (
-                          product.units.map((unit) => {
-                            const isSelected = selectedUnits[product.id] === unit.Id;
-                            const quantityValue = quantities?.[product.id]?.[unit.Id] || null;
-                            const refKey = `${product.id}-${unit.Id}`;
-
-                            const handleChange = () => {
-                              handleUnitToggle(product.id, unit.Id);
-                              inputRefs.current[refKey]?.focus();
-                            };
-
-                            const handleQuantityChange = (val: number) => {
-                              setQuantities((prev) => ({
-                                ...prev,
-                                [product.id]: {
-                                  ...(prev[product.id] || {}),
-                                  [unit.Id]: val,
-                                },
-                              }));
-                            };
-
-                            return (
-                            <div className="flex flex-col m-0 p-0 items-center justify-items-center" key={unit.Id}>
-                              <Tag.CheckableTag
-                                className="bg-white font-semibold border-2"
-                                style={{ 
-                                  margin: "0px",
-                                  padding: "3px 5px",
-                                  width: "60px",
-                                  fontSize: "14px",
-                                  borderRadius: "0px",
-                                  borderBottomWidth: "1px",
-                                  borderColor: selectedUnits[product.id] === unit.Id ? '#1890ff' : '#d9d9d9',
-                                }}
-                                checked={isSelected}
-                                onChange={handleChange}
-                              >
-                                {unit.unitName}
-                              </Tag.CheckableTag>
-                              <InputNumber 
-                                ref={(el) => {
-                                  inputRefs.current[refKey] = el;
-                                }} 
-                                value={quantityValue} 
-                                onChange={handleQuantityChange} 
-                                onFocus={() => {
-                                  if(selectedUnits[product.id] !== unit.Id) {
-                                    handleUnitToggle(product.id, unit.Id);
-                                  }
-                                }}
-                              />
-                            </div>
-                            )
-                          })
-                        ) : (
-                          <span className="text-sm text-gray-600">Tidak ada unit</span>
-                        )}
-                      </div>
-                      <Button
-                        className="ml-2"
-                        type="primary"
-                        size="middle"
-                        variant="solid"
-                        shape="circle"
-                        icon={<PlusOutlined />}
-                        disabled={!selectedUnits[product.id]}
-                        onClick={() => {
-                          const unitId = selectedUnits[product.id];
-                          if (!unitId) return; // no unit selected
-
-                          setQuantities((prev) => ({
-                            ...prev,
-                            [product.id]: {
-                              ...(prev[product.id] || {}),
-                              [unitId]: (prev[product.id]?.[unitId] || 0) + 1
-                            }
-                          }));
-                        }}
-                      ></Button>
-                    </div>
-
-                    <div className="flex justify-end mr-3 mt-3">
-                      <Tooltip>
-                        <Button 
-                          onClick={() => handleAddToCart(product)} 
-                          type="primary" 
-                          htmlType="submit" 
-                          size="large" 
-                          variant="solid" 
-                          shape="circle" 
-                          icon={<ShoppingCartOutlined />}
-                          disabled={!selectedUnits[product.id]}
-                          
+                {product.imageUrl && (
+                  <div className="border-gray-400 border-1 rounded-lg">
+                    <Card
+                      hoverable
+                      onClick={() => {
+                        setIsProductModalOpen(true);
+                        setSelectedProduct(product);
+                      }}
+                      size="small"
+                      cover={
+                        <img
+                          draggable={false}
+                          alt="example"
+                          src="/1rcgKA.jpg"
                         />
-                      </Tooltip>
-                    </div>
+                      }
+                      className="w-full object-cover"
+                    >
+                      <p className="text-md font-semibold py-2">{product.name}</p>
+                    </Card>
                   </div>
-                </div>
-              )) : []}
-            </div>
-            
-
+                )}
+              </div>
+            )) : []}
           </div>
         </div>
-      </div>
+        <Modal
+          centered
+          open={isProductModalOpen}
+          onOk={() => {
+            setIsProductModalOpen(false);
+            setSelectedProduct(null);
+          }}
+          onCancel={() => {
+            setIsProductModalOpen(false);
+            setSelectedProduct(null);
+          }}
+          width={700}
+        >
+          {selectedProduct ? (
+            <>
+              <div className="flex gap-4">
+                <img
+                  src={"/1rcgKA.jpg"}
+                  alt={selectedProduct.name}
+                  className="w-40 h-40 object-cover rounded-md border"
+                />
+                <div>
+                  <h2 className="text-lg font-bold">{selectedProduct.name}</h2>
+                  <p className="text-sm text-gray-600">{selectedProduct.description}</p>
+                  <p className="mt-2 text-md">
+                    Category: <span className="font-semibold">{selectedProduct.category}</span>
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-6">
+                <div className="grid grid-cols-2 gap-2 mb-4">
+                  {selectedProduct.units?.map((unit) => {
+                    const qty = productQuantities[unit.Id] || 0;
+                    const isSelected = qty > 0;
+                    return (
+                    <div key={unit.Id} className="border p-2 mb-1 rounded-md">
+                      {unit.unitName} — <span className="font-bold">Rp {unit.price}</span>
+                      <div className="flex items-center gap-2">
+                      <Button
+                        className="h-8 w-8"
+                        size="middle"
+                        onClick={() => updateQuantity(unit.Id, -1)}
+                        icon={<Minus className="h-3 w-3" />}
+                      />
+                      <span className="text-base font-bold w-8 text-center">{qty}</span>
+                      <Button
+                        size="middle"
+                        onClick={() => updateQuantity(unit.Id, 1)}
+                        icon={<Plus className="h-3 w-3" />}
+                      />
+                      {isSelected && (
+                        <span className="ml-auto text-sm font-semibold text-primary">
+                          {(unit.price * qty)}
+                        </span>
+                      )}
+                    </div>
+                    </div>
+                  )})}
+                </div>
+              </div>
+              {hasSelectedUnits && (
+                <div className="flex items-center justify-between p-4 bg-secondary rounded-lg border">
+                  <span className="text-lg font-semibold">Total</span>
+                  <span className="text-2xl font-bold text-primary">
+                    {totalPrice}
+                  </span>
+                </div>
+              )}
+              <div className="flex justify-between w-full gap-4">
+                <Button
+                  className="mt-4 w-full"
+                  style={{padding: '20px 0px'}}
+                  onClick={() => {
+                    setIsProductModalOpen(false);
+                    setSelectedProduct(null);
+                  }}
+                >
+                  Close
+                </Button>
+                <Button
+                  className="mt-4 w-full"
+                  style={{padding: '20px 0px'}}
+                  type="primary"
+                  icon={<ShoppingCart className="h-4 w-4" />}
+                  onClick={() => {
+                    if (selectedProduct) {
+                      handleAddToCart(selectedProduct);
+                    }
+                    setIsProductModalOpen(false);
+                    setSelectedProduct(null);
+                  }}
+                  disabled={!hasSelectedUnits}
+                >
+                  Add to Cart
+                </Button>
+              </div>
+            </>
+          ) : (
+            <p>Loading product...</p>
+          )}
+        </Modal>
+
+      </>
     )
 }
 
