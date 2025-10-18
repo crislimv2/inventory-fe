@@ -35,14 +35,14 @@ export const dummyData : Product[] =  [
     category: "Minuman",
     units: [
       {
-        Id: "f93aef58-7754-4bc1-808a-ffa6fbbda987",
+        id: "f93aef58-7754-4bc1-808a-ffa6fbbda987",
         product_id: "702bec62-0de3-4f87-b7d2-707c74f78f5e",
         unitName: "Sachet",
         price: 5000,
         quantity: 0,
       },
       {
-        Id: "c0c3da59-cca8-4142-81a5-579ecf9611c3",
+        id: "c0c3da59-cca8-4142-81a5-579ecf9611c3",
         product_id: "702bec62-0de3-4f87-b7d2-707c74f78f5e",
         unitName: "Box",
         price: 45000,
@@ -60,21 +60,21 @@ export const dummyData : Product[] =  [
     category: "Makanan",
     units: [
       {
-        Id: "f93aef58-7754-4bc1-808a-ffa6fbbda987",
+        id: "f93aef58-7754-4bc1-808a-ffa6fbbda987",
         product_id: "3",
         unitName: "Pcs",
         price: 3000,
         quantity: 0,
       },
       {
-        Id: "cf9c0494-e659-4d90-9d1c-8b530b6df34b",
+        id: "cf9c0494-e659-4d90-9d1c-8b530b6df34b",
         product_id: "3",
         unitName: "Pack",
         price: 12000,
         quantity: 0,
       },
       {
-        Id: "1d1424a5-c52a-4a9b-b9ee-0dde1deb4845",
+        id: "1d1424a5-c52a-4a9b-b9ee-0dde1deb4845",
         product_id: "3",
         unitName: "Dus",
         price: 100000,
@@ -92,14 +92,14 @@ export const dummyData : Product[] =  [
     category: "Kebersihan",
     units: [
       {
-        Id: "0774c8d5-c614-48b1-a1e2-545f2219c7bc",
+        id: "0774c8d5-c614-48b1-a1e2-545f2219c7bc",
         product_id: "4",
         unitName: "Pcs",
         price: 3000,
         quantity: 0,
       },
       {
-        Id: "c0c3da59-cca8-4142-81a5-579ecf9611c3",
+        id: "c0c3da59-cca8-4142-81a5-579ecf9611c3",
         product_id: "4",
         unitName: "Dus",
         price: 500000,
@@ -117,21 +117,21 @@ export const dummyData : Product[] =  [
     category: "Kebersihan",
     units: [
       {
-        Id: "05230b3c-0402-4d48-aee0-823cce957517",
+        id: "05230b3c-0402-4d48-aee0-823cce957517",
         product_id: "5",
         unitName: "Lusin",
         price: 20000,
         quantity: 0,
       },
       {
-        Id: "cf9c0494-e659-4d90-9d1c-8b530b6df34b",
+        id: "cf9c0494-e659-4d90-9d1c-8b530b6df34b",
         product_id: "5",
         unitName: "Pack",
         price: 12000,
         quantity: 0,
       },
       {
-        Id: "1d1424a5-c52a-4a9b-b9ee-0dde1deb4845",
+        id: "1d1424a5-c52a-4a9b-b9ee-0dde1deb4845",
         product_id: "5",
         unitName: "Dus",
         price: 100000,
@@ -149,21 +149,21 @@ export const dummyData : Product[] =  [
     category: "Rokok",
     units: [
       {
-        Id: "f93aef58-7754-4bc1-808a-ffa6fbbda987",
+        id: "f93aef58-7754-4bc1-808a-ffa6fbbda987",
         product_id: "6",
         unitName: "Pcs",
         price: 3000,
         quantity: 0,
       },
       {
-        Id: "cf9c0494-e659-4d90-9d1c-8b530b6df34b",
+        id: "cf9c0494-e659-4d90-9d1c-8b530b6df34b",
         product_id: "6",
         unitName: "Pack",
         price: 12000,
         quantity: 0,
       },
       {
-        Id: "1d1424a5-c52a-4a9b-b9ee-0dde1deb4845",
+        id: "1d1424a5-c52a-4a9b-b9ee-0dde1deb4845",
         product_id: "6",
         unitName: "Dus",
         price: 100000,
@@ -181,21 +181,21 @@ export const dummyData : Product[] =  [
     category: "Minuman",
     units: [
       {
-        Id: "f93aef58-7754-4bc1-808a-ffa6fbbda987",
+        id: "f93aef58-7754-4bc1-808a-ffa6fbbda987",
         product_id: "7",
         unitName: "Pcs",
         price: 3000,
         quantity: 0,
       },
       {
-        Id: "cf9c0494-e659-4d90-9d1c-8b530b6df34b",
+        id: "cf9c0494-e659-4d90-9d1c-8b530b6df34b",
         product_id: "7",
         unitName: "Pack",
         price: 12000,
         quantity: 0,
       },
       {
-        Id: "1d1424a5-c52a-4a9b-b9ee-0dde1deb4845",
+        id: "1d1424a5-c52a-4a9b-b9ee-0dde1deb4845",
         product_id: "7",
         unitName: "Dus",
         price: 100000,
@@ -213,21 +213,21 @@ export const dummyData : Product[] =  [
     category: "Kebutuhan Rumah",
     units: [
       {
-        Id: "f93aef58-7754-4bc1-808a-ffa6fbbda987",
+        id: "f93aef58-7754-4bc1-808a-ffa6fbbda987",
         product_id: "8",
         unitName: "Pcs",
         price: 3000,
         quantity: 0,
       },
       {
-        Id: "cf9c0494-e659-4d90-9d1c-8b530b6df34b",
+        id: "cf9c0494-e659-4d90-9d1c-8b530b6df34b",
         product_id: "8",
         unitName: "Pack",
         price: 12000,
         quantity: 0,
       },
       {
-        Id: "1d1424a5-c52a-4a9b-b9ee-0dde1deb4845",
+        id: "1d1424a5-c52a-4a9b-b9ee-0dde1deb4845",
         product_id: "8",
         unitName: "Dus",
         price: 100000,
