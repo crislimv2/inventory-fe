@@ -23,7 +23,6 @@ const CardLeftPanel = ({ cart, setCart }: CardLeftPanelProps) => {
     const [quantities, setQuantities] = useState<Record<string, Record<string, number>>>({});
     const [isProductModalOpen, setIsProductModalOpen] = useState(false);
     const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-    const [productQuantities, setProductQuantities] = useState<Record<string, number>>({});
 
     const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setSearch(e.target.value);
@@ -124,11 +123,6 @@ const CardLeftPanel = ({ cart, setCart }: CardLeftPanelProps) => {
       }
     }, [products]);
 
-    const totalPrice = Object.entries(productQuantities).reduce((sum, [unitId, qty]) => {
-      const unit = products?.flatMap(p => p.units || []).find(u => u.id === unitId);
-      return sum + (unit ? unit.price * qty : 0);
-    }, 0);
-
     return (
       <>
         <div className="bg-gray-100">
@@ -167,13 +161,11 @@ const CardLeftPanel = ({ cart, setCart }: CardLeftPanelProps) => {
         <SelectedProductModal
           isOpen={isProductModalOpen}
           product={selectedProduct}
-          productQuantities={productQuantities}
-          totalPrice={0}
-          onAddToCart={handleAddToCart}
           onClose={() => {
             setIsProductModalOpen(false);
             setSelectedProduct(null);
           }}
+          setCart={setCart}
         />
       </>
     )
