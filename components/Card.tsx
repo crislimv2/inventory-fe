@@ -30,7 +30,6 @@ const Card = () => {
           <CardLeftPanel cart={cart} setCart={setCart} />
         </div>
       </div>
-
     </>
   );
 };
