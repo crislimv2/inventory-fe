@@ -15,10 +15,12 @@ interface TabItem {
 
 interface CardRightPanelProps {
   cart: Product[];
+  setCart: React.Dispatch<React.SetStateAction<Product[]>>;
 }
 
-const CardRightPanel = ({ cart }: CardRightPanelProps) => {
+const CardRightPanel = ({ cart, setCart }: CardRightPanelProps) => {
   const [selectedUnitId, setSelectedUnitId] = useState<string | null>(null);
+  const [actionButton, setActionButton] = useState<"qty" | "price" | null>(null);
   const cardRef = useRef<HTMLDivElement | null>(null);
   const [value, setValue] = useState(1);
 
@@ -31,20 +33,33 @@ const CardRightPanel = ({ cart }: CardRightPanelProps) => {
 
 
   // Detect clicks outside
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (cardRef.current && !cardRef.current.contains(event.target as Node)) {
-        setSelectedUnitId(null);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
+  // useEffect(() => {
+  //   function handleClickOutside(event: MouseEvent) {
+  //     if (cardRef.current && !cardRef.current.contains(event.target as Node)) {
+  //       setSelectedUnitId(null);
+  //     }
+  //   }
+  //   document.addEventListener("mousedown", handleClickOutside);
+  //   return () => {
+  //     document.removeEventListener("mousedown", handleClickOutside);
+  //   };
+  // }, []);
 
+  const handleKeyPress = (key: string) => {
+    console.log("Key pressed:", key); 
+    if (!selectedUnitId) return;
+
+    if (key === 'Qty') {
+      console.log("Qty pressed");
+      setActionButton(prev => (prev === "qty" ? null : "qty"));
+    } else if (key === 'Price') {
+      console.log("Price pressed");
+      setActionButton(prev => (prev === "price" ? null : "price"));
+    }
+  };
 
   console.log("cart:", cart);
+  console.log("selectedUnitId:", selectedUnitId);
   return (
     <div className="bg-[#f8f9fa] h-full w-full flex flex-col overflow-hidden text-[#495057]">
       {/* Scrollable cart section */}
@@ -70,7 +85,7 @@ const CardRightPanel = ({ cart }: CardRightPanelProps) => {
                         className={`${
                           isSelected ? 'bg-[#DDDBE8]' : 'hover:bg-[#e9ecef]'
                         } cursor-pointer py-2 rounded-md w-full text-left my-1`}
-                        onClick={() => setSelectedUnitId(unit.id)}
+                        onClick={() => setSelectedUnitId(prev => prev === unit.id ? null : unit.id)}
                       >
                         <div className="flex px-3 justify-between">
                           <p className="font-bold">{item.name}</p>
@@ -80,13 +95,12 @@ const CardRightPanel = ({ cart }: CardRightPanelProps) => {
                           <InputNumber
                             min={0}
                             value={unit.quantity}
-                            onChange={(value) => setValue(Number(value))}
-                            className="border border-gray-300 bg-white font-bold text-black text-sm"
+                            className="border border-gray-300 bg-white font-bold text-black text-sm pointer-events-none opacity-70"
                             style={{width: '3rem'}}
-                            readOnly
+                            readOnly  
                           />
                           <p>x</p>
-                          <p>Rp. {Number(unit.price).toLocaleString('id-ID')}</p> / <p>Kg</p>
+                          <p>Rp. {Number(unit.price).toLocaleString('id-ID')}</p> / <p>({unit.unitName})</p>
                         </div>
                       </button>
                     ) 
@@ -110,19 +124,30 @@ const CardRightPanel = ({ cart }: CardRightPanelProps) => {
 
           <div className="bg-white shrink-0 flex flex-col justify-between">
             <div className="grid grid-cols-4 gap-2">
-              {['1','2','3','Qty','4','5','6','%','7','8','9','Price','0','00','.','⌫'].map((key, i) => (
+              {['1','2','3','Action','4','5','6','Qty','7','8','9','Price','0','00','.','⌫'].map((key, i) => (
                 <button
                   key={i}
-                  className={`border rounded-md font-bold text-base ${
-                    key === 'Qty' ? 'bg-[#dddbe8]' :
-                    key === '.' ? 'bg-red-100' :
-                    key === '⌫' ? 'bg-red-300' :
-                    'bg-white'
-                  }`}
-                  style={{ height: '45px' }}
+                  onClick={() => handleKeyPress(key)}
+                  style={{ height: "45px" }}
+                  className={`
+                    border rounded-md font-bold text-base transition-all cursor-pointer
+                    ${
+                      key === "Qty" || key === "Price"
+                        ? selectedUnitId
+                          ? actionButton === key.toLowerCase()
+                            ? "border-blue-600 text-black bg-[#dddbe8] border-2"
+                            : "border-black border-2 text-black bg-[#dddbe8] cursor-pointer"
+                          : "border-gray-300 text-gray-400 bg-gray-200 !cursor-default"
+                        : "bg-gray-700 border-black text-white"
+                    }
+                    ${key === "." ? "bg-black" : ""}
+                    ${key === "⌫" ? "bg-black" : ""}
+                    ${key === "Action" ? "!bg-[#dddbe8] !text-black !border-2 !cursor-pointer" : ""}
+                  `}
                 >
                   {key}
                 </button>
+
               ))}
             </div>
 

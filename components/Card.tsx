@@ -22,7 +22,7 @@ const Card = () => {
       <div className="bg-[#E9ECEF] min-h-screen w-full flex md:overflow-hidden pt-8 md:pt-0">
         {/* Right Panel (Fixed) */}
         <div className="hidden md:block md:w-5/12 lg:w-4/12 xl:w-3/12 h-screen sticky top-0">
-          <CardRightPanel cart={cart} />
+          <CardRightPanel cart={cart} setCart={setCart} />
         </div>
 
         {/* Left Panel (Scrollable) */}
