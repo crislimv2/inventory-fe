@@ -19,14 +19,18 @@ const Card = () => {
         </nav>
       </div>
 
-      <div className="bg-[#E9ECEF] min-h-screen w-full flex overflow-hidden pt-8 md:pt-0">
-        <div className="hidden md:block md:w-5/12 lg:w-4/12 xl:w-3/12 h-screen overflow-y-auto">
+      <div className="bg-[#E9ECEF] min-h-screen w-full flex md:overflow-hidden pt-8 md:pt-0">
+        {/* Right Panel (Fixed) */}
+        <div className="hidden md:block md:w-5/12 lg:w-4/12 xl:w-3/12 h-screen sticky top-0">
           <CardRightPanel cart={cart} />
         </div>
-        <div className="sm:w-full md:w-7/12 lg:w-8/12 xl:w-9/12 min-h-screen overflow-y-scroll">
+
+        {/* Left Panel (Scrollable) */}
+        <div className="sm:w-full md:w-7/12 lg:w-8/12 xl:w-9/12 h-screen overflow-y-auto">
           <CardLeftPanel cart={cart} setCart={setCart} />
         </div>
       </div>
+
     </>
   );
 };

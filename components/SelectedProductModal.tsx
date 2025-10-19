@@ -199,26 +199,26 @@ const SelectedProductModal : React.FC<SelectedProductModalProps> = ({
             {/* === Footer Buttons === */}
             <div className="flex justify-between w-full gap-4">
                 <Button
-                className="mt-4 w-full"
-                style={{ padding: '20px 0px' }}
-                onClick={onClose}
+                    className="mt-4 w-full"
+                    style={{ padding: '20px 0px' }}
+                    onClick={onClose}
                 >
-                Close
+                    Close
                 </Button>
                 <Button
-                className="mt-4 w-full"
-                style={{ padding: '20px 0px' }}
-                type="primary"
-                icon={<ShoppingCart className="h-4 w-4" />}
-                onClick={() => {
-                    if (selectedProduct) {
-                        handleAddToCart();
-                    }
-                    onClose();
-                }}
-                // disabled={!hasSelectedUnits}
+                    className="mt-4 w-full"
+                    style={{ padding: '20px 0px' }}
+                    type="primary"
+                    icon={<ShoppingCart className="h-4 w-4" />}
+                    onClick={() => {
+                        if (selectedProduct) {
+                            handleAddToCart();
+                        }
+                        onClose();
+                    }}
+                    // disabled={!hasSelectedUnits}
                 >
-                Add to Cart
+                    Add to Cart
                 </Button>
             </div>
             </>

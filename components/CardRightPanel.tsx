@@ -46,9 +46,9 @@ const CardRightPanel = ({ cart }: CardRightPanelProps) => {
 
   console.log("cart:", cart);
   return (
-    <div className="bg-[#f8f9fa] h-full w-full px-4 text-[#495057] flex flex-col">
+    <div className="bg-[#f8f9fa] h-full w-full flex flex-col overflow-hidden text-[#495057]">
       {/* Scrollable cart section */}
-      <div className="flex-1 w-full bg-[#f8f9fa] rounded-sm overflow-y-auto ">
+      <div className="flex-1 overflow-y-auto" ref={cardRef}>
         {cart.length === 0 ? (
           <div className="w-full h-full text-black flex justify-center items-center flex-col">
             <ShoppingCartOutlined style={{ fontSize: '60px' }} />
@@ -57,8 +57,8 @@ const CardRightPanel = ({ cart }: CardRightPanelProps) => {
             </p>
           </div>
         ) : (
-          <div className="flex flex-col h-7/12">
-            <div className="p-1 flex-1" ref={cardRef}>
+          <div className="flex flex-col">
+            <div className="p-1">
               {cart.map((item) => (
                 <div key={item.id}>
                   {item.units?.map((unit) => {
@@ -77,13 +77,6 @@ const CardRightPanel = ({ cart }: CardRightPanelProps) => {
                           <p className="font-bold">Rp. {Number(unit.price).toLocaleString('id-ID')}</p>
                         </div>
                         <div className="flex px-3 gap-2">
-                          {/* <input
-                            type="number"
-                            min="0"
-                            value={unit.quantity}
-                            onChange={(e) => setValue(Number(e.target.value))}
-                            className="border border-gray-300 bg-white w-10 font-bold text-black text-sm"
-                          /> */}
                           <InputNumber
                             min={0}
                             value={unit.quantity}
@@ -107,24 +100,16 @@ const CardRightPanel = ({ cart }: CardRightPanelProps) => {
       
       {/* Fixed Calculator at Bottom */}
       {cart.length > 0 && (
-        <>
-          <div className="py-3 bg-[#f8f9fa] "> 
+        <div className="bg-[#f8f9fa] mt-auto mx-3">
+          <div className="py-3">
             <div className="flex justify-between">
               <p className="font-bold text-2xl">Total</p>
               <p className="font-bold text-2xl text-blue-600">Rp. {total.toLocaleString('id-ID')}</p>
             </div>
           </div>
-          <div
-            className="
-              bg-white 
-              shrink-0 
-              flex 
-              flex-col 
-              justify-between 
-            "
-          >
-            {/* Calculator grid */}
-            <div className="grid grid-cols-4 gap-2 flex-grow">
+
+          <div className="bg-white shrink-0 flex flex-col justify-between">
+            <div className="grid grid-cols-4 gap-2">
               {['1','2','3','Qty','4','5','6','%','7','8','9','Price','0','00','.','⌫'].map((key, i) => (
                 <button
                   key={i}
@@ -134,35 +119,20 @@ const CardRightPanel = ({ cart }: CardRightPanelProps) => {
                     key === '⌫' ? 'bg-red-300' :
                     'bg-white'
                   }`}
-                  style={{
-                    height: '45px', // fixed height per button
-                  }}
+                  style={{ height: '45px' }}
                 >
                   {key}
                 </button>
               ))}
             </div>
 
-            {/* Payment button */}
             <button
-              className="
-                bg-[#6f55a4] 
-                text-white 
-                font-bold 
-                py-3 
-                mt-3 
-                rounded-md 
-                w-full 
-                md:py-2       /* smaller padding on md screens */
-                md:text-sm    /* smaller text */
-              "
+              className="bg-[#6f55a4] text-white font-bold py-3 my-2 rounded-md w-full md:py-2 md:text-sm"
             >
               Payment
             </button>
           </div>
-
-        </>
-        
+        </div>
       )}
     </div>
   );
