@@ -12,14 +12,22 @@ const Card = () => {
   // }, [cart]);
 
   return (
-    <div className="bg-[#E9ECEF] h-screen w-full flex">
-      <div className="sm:w-6/12 md:w-5/12 lg:w-4/12 xl:w-3/12 h-screen overflow-y-auto">
-        <CardRightPanel cart={cart} />
+    <>
+      <div className="block md:hidden bg-gray-400 w-full fixed top-0 z-50">
+        <nav className="flex items-center justify-center h-8">
+          <h1 className="text-sm font-semibold text-white">Hello</h1>
+        </nav>
       </div>
-      <div className="sm:w-6/12 md:w-7/12 lg:w-8/12 xl:w-9/12 h-screen overflow-y-scroll">
-        <CardLeftPanel cart={cart} setCart={setCart} />
+
+      <div className="bg-[#E9ECEF] min-h-screen w-full flex overflow-hidden pt-8 md:pt-0">
+        <div className="hidden md:block md:w-5/12 lg:w-4/12 xl:w-3/12 h-screen overflow-y-auto">
+          <CardRightPanel cart={cart} />
+        </div>
+        <div className="sm:w-full md:w-7/12 lg:w-8/12 xl:w-9/12 min-h-screen overflow-y-scroll">
+          <CardLeftPanel cart={cart} setCart={setCart} />
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 

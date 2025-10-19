@@ -124,16 +124,16 @@ const CardLeftPanel = ({ cart, setCart }: CardLeftPanelProps) => {
     }, [products]);
 
     return (
-      <>
-        <div className="bg-gray-100">
-          <div className="grid xl:grid-cols-5 lg:grid-cols-4 md:grid-cols-3 sm:grid-cols-2 overflow-y-hidden">
+      <div className="overflow-hidden">
+        <div className="bg-white">
+          <div className="grid grid-cols-3 xl:grid-cols-5 lg:grid-cols-3 md:grid-cols-3 sm:grid-cols-5 overflow-y-hidden gap-2 mx-2">
             {products ? products.map((product) => (
               <div
                 key={product.id}
-                className="bg-white gap-2 py-2 px-1"
+                className="bg-white py-2"
               >
                 {product.imageUrl && (
-                  <div className="border-gray-400 border-1 rounded-lg">
+                  <div className="border-gray-600 border-1 rounded-lg">
                     <Card
                       hoverable
                       onClick={() => {
@@ -142,15 +142,20 @@ const CardLeftPanel = ({ cart, setCart }: CardLeftPanelProps) => {
                       }}
                       size="small"
                       cover={
-                        <img
-                          draggable={false}
-                          alt="example"
-                          src="/1rcgKA.jpg"
-                        />
+                        <div className="aspect-[3/4] overflow-hidden">
+                          <img
+                            src="/1rcgKA.jpg"
+                            alt="example"
+                            className="object-cover w-full h-full"
+                            draggable={false}
+                          />
+                        </div>
                       }
-                      className="w-full object-cover"
+                      className="w-full"
                     >
-                      <p className="text-md font-semibold py-2">{product.name}</p>
+                      <p className="text-md font-semibold line-clamp-2 min-h-[48px]">
+                        {product.name}
+                      </p>
                     </Card>
                   </div>
                 )}
@@ -167,7 +172,7 @@ const CardLeftPanel = ({ cart, setCart }: CardLeftPanelProps) => {
           }}
           setCart={setCart}
         />
-      </>
+      </div>
     )
 }
 

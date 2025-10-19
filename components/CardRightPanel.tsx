@@ -46,9 +46,9 @@ const CardRightPanel = ({ cart }: CardRightPanelProps) => {
 
   console.log("cart:", cart);
   return (
-    <div className="bg-[#f8f9fa] h-screen w-auto px-4 py-4 text-[#495057] flex flex-col">
+    <div className="bg-[#f8f9fa] h-full w-full px-4 text-[#495057] flex flex-col">
       {/* Scrollable cart section */}
-      <div className="flex-1 w-full bg-[#f8f9fa] rounded-sm overflow-y-auto pb-2">
+      <div className="flex-1 w-full bg-[#f8f9fa] rounded-sm overflow-y-auto ">
         {cart.length === 0 ? (
           <div className="w-full h-full text-black flex justify-center items-center flex-col">
             <ShoppingCartOutlined style={{ fontSize: '60px' }} />
@@ -57,7 +57,7 @@ const CardRightPanel = ({ cart }: CardRightPanelProps) => {
             </p>
           </div>
         ) : (
-          <div className="flex flex-col h-full">
+          <div className="flex flex-col h-7/12">
             <div className="p-1 flex-1" ref={cardRef}>
               {cart.map((item) => (
                 <div key={item.id}>
@@ -117,7 +117,6 @@ const CardRightPanel = ({ cart }: CardRightPanelProps) => {
           <div
             className="
               bg-white 
-              mt-2 
               shrink-0 
               flex 
               flex-col 
@@ -136,7 +135,7 @@ const CardRightPanel = ({ cart }: CardRightPanelProps) => {
                     'bg-white'
                   }`}
                   style={{
-                    height: '60px', // fixed height per button
+                    height: '45px', // fixed height per button
                   }}
                 >
                   {key}

@@ -142,19 +142,19 @@ const SelectedProductModal : React.FC<SelectedProductModalProps> = ({
                 {selectedProduct?.units?.map((unit) => {
                     return (
                         <div key={unit.id} className="border py-4 px-3 mb-1 rounded-md border-gray-300 bg-blue-100">
-                            <div className="flex-row flex gap-2">
-                            <span className="font-semibold text-lg">
-                                {unit.unitName} <span className="font-normal">—</span>
-                            </span>
-                            <div className="text-md font-semibold gap-1">
-                                <span>Rp </span>
-                                <InputNumber
-                                value={unit.price}
-                                onChange={(value) => handleUpdatePrice(unit.id, value)}
-                                controls={false}
-                                className="w-24"
-                                />
-                            </div>
+                            <div className="flex-col sm:flex-row flex gap-2">
+                                <span className="font-semibold text-lg">
+                                    {unit.unitName} <span className="font-normal hidden sm:inline">—</span>
+                                </span>
+                                <div className="text-md font-semibold gap-1">
+                                    <span>Rp </span>
+                                    <InputNumber
+                                        value={unit.price}
+                                        onChange={(value) => handleUpdatePrice(unit.id, value)}
+                                        controls={false}
+                                        className="w-24"
+                                    />
+                                </div>
                             </div>
 
                             <div className="flex items-center gap-2 justify-between mt-3">
