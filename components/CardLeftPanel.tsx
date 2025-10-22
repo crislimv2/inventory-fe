@@ -135,9 +135,11 @@ const CardLeftPanel = ({ setCart }: CardLeftPanelProps) => {
                       }}
                       size="small"
                       cover={
-                        <div className="aspect-[3/4] overflow-hidden">
+                        <div className="aspect-3/4 overflow-hidden">
                           <Image
                             src="/1rcgKA.jpg"
+                            width={70}
+                            height={80}
                             alt="example"
                             className="object-cover w-full h-full"
                             draggable={false}
