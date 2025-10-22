@@ -99,9 +99,6 @@ const CardRightPanel = ({ cart, setCart }: CardRightPanelProps) => {
     );
   };
 
-
-  console.log("cart:", cart);
-  console.log("selectedUnitId:", selectedUnitId);
   return (
     <div className="bg-[#f8f9fa] h-full w-full flex flex-col overflow-hidden text-[#495057]">
       {/* Scrollable cart section */}

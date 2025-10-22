@@ -94,18 +94,15 @@ const SelectedProductModal : React.FC<SelectedProductModalProps> = ({
         const updatedUnits = selectedProduct?.units?.map((unit) => {
             if (unit.id === unitId) {
                 const newQuantity = Math.max((unit.quantity || 0) + delta, 0); // prevent negative
-                console.log("New Quantity:", newQuantity);
                 return { ...unit, quantity: newQuantity };
             }
             return unit;
         });
-        console.log("Updated Units:", updatedUnits);
         
         setSelectedProduct({
             ...selectedProduct,
             units: updatedUnits,
         });
-        console.log("Selected Product after quantity update:", selectedProduct);
 
     };
 
