@@ -46,17 +46,67 @@ const CardRightPanel = ({ cart, setCart }: CardRightPanelProps) => {
   // }, []);
 
   const handleKeyPress = (key: string) => {
-    console.log("Key pressed:", key); 
-    if (!selectedUnitId) return;
-
-    if (key === 'Qty') {
-      console.log("Qty pressed");
-      setActionButton(prev => (prev === "qty" ? null : "qty"));
-    } else if (key === 'Price') {
-      console.log("Price pressed");
-      setActionButton(prev => (prev === "price" ? null : "price"));
+    if (key === "Qty") {
+      setActionButton((prev) => (prev === "qty" ? null : "qty"));
+    } else if (key === "Price") {
+      setActionButton((prev) => (prev === "price" ? null : "price"));
+    } else if (
+      ["0", "00", "1", "2", "3", "4", "5", "6", "7", "8", "9", ".", "⌫"].includes(key)
+    ) {
+      console.log("handle key pressed:", key);
+      handleCalculatorInput(key);
     }
   };
+
+  useEffect(() => {
+    setActionButton(null);
+  }, [selectedUnitId]);
+
+
+
+  const handleCalculatorInput = (key: string) => {
+    if (!selectedUnitId || !actionButton) return;
+    
+    setCart((prevCart) =>
+      prevCart.map((item) => ({
+        ...item,
+        units: item.units?.map((unit) => {
+          if (unit.id !== selectedUnitId) return unit;
+
+          // Clone current value based on action mode
+          let currentValue =
+            actionButton === "qty"
+              ? String(unit.quantity)
+              : String(unit.price);
+
+          if (key === "⌫") {
+            // Remove last digit
+            currentValue = currentValue.slice(0, -1) || "0";
+          } else if (key === ".") {
+            if (!currentValue.includes(".")) currentValue += ".";
+          } else if (!isNaN(Number(key))) {
+            // Append digit
+            if (currentValue === "0") currentValue = key;
+            else currentValue += key;
+          }
+
+          const parsedValue =
+            actionButton === "qty"
+              ? parseFloat(currentValue)
+              : parseFloat(currentValue);
+
+          return {
+            ...unit,
+            [actionButton === "qty" ? "quantity" : "price"]:
+              isNaN(parsedValue) ? 0 : parsedValue,
+          };
+        }),
+      }))
+    );
+    console.log("handleCalculatorInput executed");
+    console.log(cart);
+  };
+
 
   console.log("cart:", cart);
   console.log("selectedUnitId:", selectedUnitId);
@@ -89,7 +139,7 @@ const CardRightPanel = ({ cart, setCart }: CardRightPanelProps) => {
                       >
                         <div className="flex px-3 justify-between">
                           <p className="font-bold">{item.name}</p>
-                          <p className="font-bold">Rp. {Number(unit.price).toLocaleString('id-ID')}</p>
+                          <p className="font-bold">Rp. {Number(unit.price * unit.quantity).toLocaleString('id-ID')}</p>
                         </div>
                         <div className="flex px-3 gap-2">
                           <InputNumber
@@ -135,7 +185,7 @@ const CardRightPanel = ({ cart, setCart }: CardRightPanelProps) => {
                       key === "Qty" || key === "Price"
                         ? selectedUnitId
                           ? actionButton === key.toLowerCase()
-                            ? "border-blue-600 text-black bg-[#dddbe8] border-2"
+                            ? "border-blue-600 text-white bg-blue-600 border-2"
                             : "border-black border-2 text-black bg-[#dddbe8] cursor-pointer"
                           : "border-gray-300 text-gray-400 bg-gray-200 !cursor-default"
                         : "bg-gray-700 border-black text-white"
@@ -152,7 +202,7 @@ const CardRightPanel = ({ cart, setCart }: CardRightPanelProps) => {
             </div>
 
             <button
-              className="bg-[#6f55a4] text-white font-bold py-3 my-2 rounded-md w-full md:py-2 md:text-sm"
+              className="bg-[#6f55a4] text-white font-bold py-2 my-2 rounded-md w-full md:py-2 md:text-sm"
             >
               Payment
             </button>
