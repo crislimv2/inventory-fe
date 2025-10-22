@@ -6,13 +6,6 @@ import { ShoppingCartOutlined } from '@ant-design/icons';
 import { InputNumber } from 'antd';
 import CheckoutProductModal from './CheckoutProductModal';
 
-interface TabItem {
-  label: string;
-  // children: React.ReactNode;
-  key: string;
-  closable?: boolean;
-  cartData: Product[];
-}
 
 interface CardRightPanelProps {
   cart: Product[];

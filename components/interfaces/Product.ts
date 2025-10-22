@@ -1,4 +1,3 @@
-import { uuid } from "zod";
 import { dummyProductUnit, ProductUnit } from "./ProductUnit";
 
 export interface Product {

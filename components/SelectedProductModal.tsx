@@ -3,6 +3,7 @@ import { SelectedProductModalProps } from "./interfaces/SelectedProductModalProp
 import { Minus, Plus, ShoppingCart } from "lucide-react";
 import { Product } from "./interfaces/Product";
 import { useEffect, useState } from "react";
+import Image from "next/image";
 
 const SelectedProductModal : React.FC<SelectedProductModalProps> = ({
     isOpen,
@@ -106,11 +107,6 @@ const SelectedProductModal : React.FC<SelectedProductModalProps> = ({
 
     };
 
-    const formatNumber = (value: number) => {
-        return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-    }
-
-
     return (
         <Modal
         centered
@@ -123,10 +119,10 @@ const SelectedProductModal : React.FC<SelectedProductModalProps> = ({
             <>
             {/* === Product header === */}
             <div className="flex gap-4">
-                <img
-                src={"/1rcgKA.jpg"}
-                alt={selectedProduct.name}
-                className="w-40 h-40 object-cover rounded-md border"
+                <Image
+                    src={"/1rcgKA.jpg"}
+                    alt={selectedProduct.name}
+                    className="w-40 h-40 object-cover rounded-md border"
                 />
                 <div>
                 <h2 className="text-lg font-bold">{selectedProduct.name}</h2>
