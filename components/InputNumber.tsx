@@ -1,5 +1,6 @@
 'use client'
 import { forwardRef, useState } from 'react';
+
 const InputNumber = forwardRef<HTMLInputElement, { value: number | null; onChange: (val: number) => void; onFocus?: () => void; }>(
   ({ value, onChange, onFocus }, ref) => {
     const [isFocused, setIsFocused] = useState(false);
@@ -26,5 +27,7 @@ const InputNumber = forwardRef<HTMLInputElement, { value: number | null; onChang
     );
   }
 );
+// ✅ Add a display name for ESLint and React DevTools
+InputNumber.displayName = 'InputNumber';
 
 export default InputNumber;

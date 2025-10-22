@@ -2,86 +2,79 @@
 import { useEffect, useState } from "react";
 import { dummyData, Product } from "./interfaces/Product";
 import SelectedProductModal from "./SelectedProductModal";
-import { Button, Card, InputNumber, MenuProps, message, Modal } from 'antd';
-import { Minus, Plus, ShoppingCart } from "lucide-react";
-
-const handleMenuClick: MenuProps['onClick'] = (e) => {
-  message.info('Click on menu item.');                                                                  
-  console.log('click', e);
-};
+import { Card } from 'antd';
+import Image from "next/image";
 
 interface CardLeftPanelProps {
-  cart: Product[];
   setCart: React.Dispatch<React.SetStateAction<Product[]>>;
 }
 
-const CardLeftPanel = ({ cart, setCart }: CardLeftPanelProps) => {
+const CardLeftPanel = ({ setCart }: CardLeftPanelProps) => {
     const [products, setProducts] = useState<Product[]>();
     // const [cart, setCart] = useState<Product[]>([]);
-    const [search, setSearch] = useState<string>("");
+    // const [search, setSearch] = useState<string>("");
     const [selectedUnits, setSelectedUnits] = useState<Record<string, string | null>>({});
-    const [quantities, setQuantities] = useState<Record<string, Record<string, number>>>({});
     const [isProductModalOpen, setIsProductModalOpen] = useState(false);
     const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
-    const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setSearch(e.target.value);
-    };
+    // const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    //     setSearch(e.target.value);
+    // };
 
-    const getUnitInfo = (product : Product, unitId: string) => {
-      const selectedProduct = product.units?.find((u) => u.id === unitId);
-      const unit = {
-        Id: selectedProduct?.id || "",
-        product_id: product.id,
-        unitName: selectedProduct?.unitName || "",
-        price: selectedProduct?.price || 0,
-      };
-      return unit ?? null;
-    };
+    // const getUnitInfo = (product : Product, unitId: string) => {
+    //   const selectedProduct = product.units?.find((u) => u.id === unitId);
+    //   const unit = {
+    //     Id: selectedProduct?.id || "",
+    //     product_id: product.id,
+    //     unitName: selectedProduct?.unitName || "",
+    //     price: selectedProduct?.price || 0,
+    //   };
+    //   return unit ?? null;
+    // };
 
     // useEffect(() => {
     //   console.log("Cart updated:", cart);
     // }, [cart]);
 
-    const handleAddToCart = (product: Product) => {
-      const productId = product.id;
+    // const handleAddToCart = (product: Product) => {
+    //   const productId = product.id;
 
-       const productQuantities = quantities[productId];
-      if (!productQuantities) {
-        message.error("Please select a unit before adding to cart.");
-        return;
-      }
+    //    const productQuantities = quantities[productId];
+    //   if (!productQuantities) {
+    //     message.error("Please select a unit before adding to cart.");
+    //     return;
+    //   }
 
-      // Get unit IDs with quantity > 0
-      const selectedUnitIds = Object.keys(productQuantities).filter(
-        (unitId) => productQuantities[unitId] > 0
-      );
+    //   // Get unit IDs with quantity > 0
+    //   const selectedUnitIds = Object.keys(productQuantities).filter(
+    //     (unitId) => productQuantities[unitId] > 0
+    //   );
 
-      if (selectedUnitIds.length === 0) {
-        message.error("Please select at least one unit with quantity > 0.");
-        return;
-      }
+    //   if (selectedUnitIds.length === 0) {
+    //     message.error("Please select at least one unit with quantity > 0.");
+    //     return;
+    //   }
 
-      const newUnits = selectedUnitIds.map((unitId) => {
-        const unitInfo = getUnitInfo(product, unitId);
-        return {
-          Id: unitId,
-          product_id: productId,
-          unitName: unitInfo?.unitName,
-          price: unitInfo?.price,
-          quantity: productQuantities[unitId],
-        };
-      });
+    //   const newUnits = selectedUnitIds.map((unitId) => {
+    //     const unitInfo = getUnitInfo(product, unitId);
+    //     return {
+    //       Id: unitId,
+    //       product_id: productId,
+    //       unitName: unitInfo?.unitName,
+    //       price: unitInfo?.price,
+    //       quantity: productQuantities[unitId],
+    //     };
+    //   });
 
-      // Reset quantity for the selected units
-      setQuantities((prev) => ({
-        ...prev,
-        [productId]: {
-          ...prev[productId],
-          ...Object.fromEntries(selectedUnitIds.map((unitId) => [unitId, 0])),
-        },
-      }));
-    };
+    //   // Reset quantity for the selected units
+    //   setQuantities((prev) => ({
+    //     ...prev,
+    //     [productId]: {
+    //       ...prev[productId],
+    //       ...Object.fromEntries(selectedUnitIds.map((unitId) => [unitId, 0])),
+    //     },
+    //   }));
+    // };
 
 
     useEffect(() => {
@@ -121,7 +114,7 @@ const CardLeftPanel = ({ cart, setCart }: CardLeftPanelProps) => {
           setSelectedUnits((prev) => ({ ...prev, ...defaults }));
         }
       }
-    }, [products]);
+    }, [products, selectedUnits]);
 
     return (
       <div className="overflow-hidden">
@@ -143,7 +136,7 @@ const CardLeftPanel = ({ cart, setCart }: CardLeftPanelProps) => {
                       size="small"
                       cover={
                         <div className="aspect-[3/4] overflow-hidden">
-                          <img
+                          <Image
                             src="/1rcgKA.jpg"
                             alt="example"
                             className="object-cover w-full h-full"
