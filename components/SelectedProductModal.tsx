@@ -109,6 +109,10 @@ const SelectedProductModal : React.FC<SelectedProductModalProps> = ({
 
     };
 
+    const formatNumber = (value: number) => {
+        return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    }
+
 
     return (
         <Modal
@@ -153,6 +157,12 @@ const SelectedProductModal : React.FC<SelectedProductModalProps> = ({
                                         onChange={(value) => handleUpdatePrice(unit.id, value)}
                                         controls={false}
                                         className="w-24"
+                                        formatter={(value) =>
+                                            value
+                                                ? value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+                                                : ''
+                                        }
+                                        parser={(value) => Number(value?.replace(/\./g, '') || '0')}
                                     />
                                 </div>
                             </div>

@@ -22,7 +22,6 @@ const CardRightPanel = ({ cart, setCart }: CardRightPanelProps) => {
   const [selectedUnitId, setSelectedUnitId] = useState<string | null>(null);
   const [actionButton, setActionButton] = useState<"qty" | "price" | null>(null);
   const cardRef = useRef<HTMLDivElement | null>(null);
-  const [value, setValue] = useState(1);
 
 
   const total = useMemo(() => {
@@ -53,7 +52,6 @@ const CardRightPanel = ({ cart, setCart }: CardRightPanelProps) => {
     } else if (
       ["0", "00", "1", "2", "3", "4", "5", "6", "7", "8", "9", ".", "⌫"].includes(key)
     ) {
-      console.log("handle key pressed:", key);
       handleCalculatorInput(key);
     }
   };
@@ -73,7 +71,6 @@ const CardRightPanel = ({ cart, setCart }: CardRightPanelProps) => {
         units: item.units?.map((unit) => {
           if (unit.id !== selectedUnitId) return unit;
 
-          // Clone current value based on action mode
           let currentValue =
             actionButton === "qty"
               ? String(unit.quantity)
@@ -84,27 +81,22 @@ const CardRightPanel = ({ cart, setCart }: CardRightPanelProps) => {
             currentValue = currentValue.slice(0, -1) || "0";
           } else if (key === ".") {
             if (!currentValue.includes(".")) currentValue += ".";
-          } else if (!isNaN(Number(key))) {
+          } else if (!Number.isNaN(Number(key))) {
             // Append digit
             if (currentValue === "0") currentValue = key;
             else currentValue += key;
           }
 
-          const parsedValue =
-            actionButton === "qty"
-              ? parseFloat(currentValue)
-              : parseFloat(currentValue);
+          const parsedValue = Number.parseFloat(currentValue);
 
           return {
             ...unit,
             [actionButton === "qty" ? "quantity" : "price"]:
-              isNaN(parsedValue) ? 0 : parsedValue,
+              Number.isNaN(parsedValue) ? 0 : parsedValue,
           };
         }),
       }))
     );
-    console.log("handleCalculatorInput executed");
-    console.log(cart);
   };
 
 
@@ -174,31 +166,43 @@ const CardRightPanel = ({ cart, setCart }: CardRightPanelProps) => {
 
           <div className="bg-white shrink-0 flex flex-col justify-between">
             <div className="grid grid-cols-4 gap-2">
-              {['1','2','3','Action','4','5','6','Qty','7','8','9','Price','0','00','.','⌫'].map((key, i) => (
-                <button
-                  key={i}
-                  onClick={() => handleKeyPress(key)}
-                  style={{ height: "45px" }}
-                  className={`
-                    border rounded-md font-bold text-base transition-all cursor-pointer
-                    ${
-                      key === "Qty" || key === "Price"
-                        ? selectedUnitId
-                          ? actionButton === key.toLowerCase()
-                            ? "border-blue-600 text-white bg-blue-600 border-2"
-                            : "border-black border-2 text-black bg-[#dddbe8] cursor-pointer"
-                          : "border-gray-300 text-gray-400 bg-gray-200 !cursor-default"
-                        : "bg-gray-700 border-black text-white"
-                    }
-                    ${key === "." ? "bg-black" : ""}
-                    ${key === "⌫" ? "bg-black" : ""}
-                    ${key === "Action" ? "!bg-[#dddbe8] !text-black !border-2 !cursor-pointer" : ""}
-                  `}
-                >
-                  {key}
-                </button>
+              {['1','2','3','Action','4','5','6','Qty','7','8','9','Price','0','00','.','⌫'].map((key, i) => {
+                let buttonClass = '';
 
-              ))}
+                if (key === 'Qty' || key === 'Price') {
+                  if (selectedUnitId) {
+                    if (actionButton === key.toLowerCase()) {
+                      buttonClass = 'border-blue-600 text-white bg-blue-600 border-2';
+                    } else {
+                      buttonClass = 'border-black border-2 text-black bg-[#dddbe8] cursor-pointer';
+                    }
+                  } else {
+                    buttonClass = 'border-gray-300 text-gray-400 bg-gray-200 !cursor-default';
+                  }
+                } else {
+                  buttonClass = 'bg-gray-700 border-black text-white';
+                }
+
+                if (key === '.' || key === '⌫') {
+                  buttonClass += ' bg-black';
+                }
+
+                if (key === 'Action') {
+                  buttonClass += ' !bg-[#dddbe8] !text-black !border-2 !cursor-pointer';
+                }
+
+                return (
+                  <button
+                    key={i}
+                    onClick={() => handleKeyPress(key)}
+                    style={{ height: '45px' }}
+                    className={`border rounded-md font-bold text-base transition-all cursor-pointer ${buttonClass}`}
+                  >
+                    {key}
+                  </button>
+                );
+              })}
+
             </div>
 
             <button
