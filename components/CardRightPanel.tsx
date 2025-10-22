@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Product } from './interfaces/Product';
 import { ShoppingCartOutlined } from '@ant-design/icons';
 import { InputNumber } from 'antd';
+import CheckoutProductModal from './CheckoutProductModal';
 
 interface TabItem {
   label: string;
@@ -21,6 +22,7 @@ interface CardRightPanelProps {
 const CardRightPanel = ({ cart, setCart }: CardRightPanelProps) => {
   const [selectedUnitId, setSelectedUnitId] = useState<string | null>(null);
   const [actionButton, setActionButton] = useState<"qty" | "price" | null>(null);
+  const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState<boolean>(false);
   const cardRef = useRef<HTMLDivElement | null>(null);
 
 
@@ -203,13 +205,20 @@ const CardRightPanel = ({ cart, setCart }: CardRightPanelProps) => {
             </div>
 
             <button
-              className="bg-[#6f55a4] text-white font-bold py-2 my-2 rounded-md w-full md:py-2 md:text-sm"
+              className="bg-[#6f55a4] text-white font-bold py-2 my-2 rounded-md w-full md:py-2 md:text-sm cursor-pointer"
+              onClick={() => setIsCheckoutModalOpen(true)}
             >
-              Payment
+              Checkout
             </button>
           </div>
         </div>
       )}
+
+      <CheckoutProductModal
+        isOpen={isCheckoutModalOpen}
+        onClose={() => setIsCheckoutModalOpen(false)}
+        cart={cart}
+      />
     </div>
   );
 

@@ -29,6 +29,7 @@ const Card = () => {
         <div className="sm:w-full md:w-7/12 lg:w-8/12 xl:w-9/12 h-screen overflow-y-auto">
           <CardLeftPanel cart={cart} setCart={setCart} />
         </div>
+        
       </div>
     </>
   );
