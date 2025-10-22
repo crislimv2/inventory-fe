@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import CardLeftPanel from "./CardLeftPanel";
 import CardRightPanel from "./CardRightPanel";
 import { Product } from "./interfaces/Product";
@@ -7,19 +7,31 @@ import { Product } from "./interfaces/Product";
 const Card = () => {
   const [cart, setCart] = useState<Product[]>([]);
 
-  useEffect(() => {
-    console.log("Cart initialized:", cart);
-  }, [cart]);
+  // useEffect(() => {
+  //   console.log("Cart initialized:", cart);
+  // }, [cart]);
 
   return (
-    <div className="bg-white h-screen w-full flex">
-      <div className="bg-blue-200 h-screen w-3/4 overflow-y-scroll">
-        <CardLeftPanel cart={cart} setCart={setCart} />
+    <>
+      <div className="block md:hidden bg-gray-400 w-full fixed top-0 z-50">
+        <nav className="flex items-center justify-center h-8">
+          <h1 className="text-sm font-semibold text-white">Hello</h1>
+        </nav>
       </div>
-      <div className="bg-yellow-200 w-1/4 sticky top-0 h-screen overflow-y-scroll ">
-        <CardRightPanel cart={cart} />
+
+      <div className="bg-[#E9ECEF] min-h-screen w-full flex md:overflow-hidden pt-8 md:pt-0">
+        {/* Right Panel (Fixed) */}
+        <div className="hidden md:block md:w-5/12 lg:w-4/12 xl:w-3/12 h-screen sticky top-0">
+          <CardRightPanel cart={cart} setCart={setCart} />
+        </div>
+
+        {/* Left Panel (Scrollable) */}
+        <div className="sm:w-full md:w-7/12 lg:w-8/12 xl:w-9/12 h-screen overflow-y-auto">
+          <CardLeftPanel cart={cart} setCart={setCart} />
+        </div>
+        
       </div>
-    </div>
+    </>
   );
 };
 
