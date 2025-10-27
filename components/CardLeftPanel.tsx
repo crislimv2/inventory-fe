@@ -138,8 +138,8 @@ const CardLeftPanel = ({ setCart }: CardLeftPanelProps) => {
                         <div className="aspect-3/4 overflow-hidden">
                           <Image
                             src="/1rcgKA.jpg"
-                            width={70}
-                            height={80}
+                            width={400}
+                            height={200}
                             alt="example"
                             className="object-cover w-full h-full"
                             draggable={false}
