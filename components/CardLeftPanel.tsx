@@ -126,7 +126,7 @@ const CardLeftPanel = ({ setCart }: CardLeftPanelProps) => {
                 className="bg-white py-2"
               >
                 {product.imageUrl && (
-                  <div className="border-gray-600 border-1 rounded-lg">
+                  <div className="border-gray-600 border-2 rounded-lg">
                     <Card
                       hoverable
                       onClick={() => {
