@@ -1,11 +1,28 @@
-import React from "react";
+import React, { useState } from "react";
 import CheckoutProductModalProps from "./interfaces/CheckoutProductModalProps";
-import { Button, Modal } from "antd";
-import { Trash2Icon, TrashIcon } from "lucide-react";
+import { InputNumber, Modal, Segmented } from "antd";
+import { CreditCard, QrCode, Trash2Icon, Wallet } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 const CheckoutProductModal : React.FC<CheckoutProductModalProps> = ({ isOpen, onClose, cart, setCart }) => {
-  console.log(cart);
+  const [paymentMethod, setPaymentMethod] = useState<'Cash' | 'QRIS' | 'Debit'>('Cash');
+  const [cashReceived, setCashReceived] = useState<number | null>(null);
+  console.log(paymentMethod)
   let idx = 0;
+  const handleRemoveItem = (productId: string, unitId: string) => {
+    setCart(prevCart => {
+      return prevCart.map(product => {
+        if (product.id === productId) {
+          return {
+            ...product,
+            units: product.units?.filter(unit => unit.id !== unitId)
+          };
+        }
+        return product;
+      });
+    });
+  };
+
   return (
     <div>
         <Modal
@@ -51,21 +68,8 @@ const CheckoutProductModal : React.FC<CheckoutProductModalProps> = ({ isOpen, on
                                 </div>  
                               </div>
                               <button 
-                                className="w-1/12 bg-red-500 flex justify-center items-center rounded-r-md"
-                                onClick={() => {
-                                  // Remove unit from cart
-                                  setCart(prevCart => {
-                                    return prevCart.map(p => {
-                                      if (p.id === product.id) {
-                                        return {
-                                          ...p,
-                                          units: p.units?.filter(u => u.id !== unit.id)
-                                        };
-                                      }
-                                      return p;
-                                    });
-                                  });
-                                }}
+                                className="w-1/12 bg-red-500 flex justify-center items-center rounded-r-md hover:cursor-pointer"
+                                onClick={() => handleRemoveItem(product.id, unit.id)}
                               >
                                 <Trash2Icon color="#ffffff" size={20}/>
                               </button>
@@ -88,8 +92,75 @@ const CheckoutProductModal : React.FC<CheckoutProductModalProps> = ({ isOpen, on
                 </div>
               </div>
             </div>
-            <div className="w-6/12 bg-blue-300">
-              <h2 className="text-lg font-semibold">Total Price</h2>
+            <div className="w-6/12">
+              <h2 className="text-lg font-semibold mb-2">Pembayaran</h2>
+              <div className="flex items-center w-full">
+                <Segmented
+                  options={[{
+                    label: (
+                      <div 
+                        className="flex flex-row items-center justify-center font-medium gap-2 px-4"
+                      >
+                        <Wallet size={20} />
+                        <p>Cash</p>
+                      </div>
+                    ),
+                    value: 'Cash'
+                  }, {
+                    label: (
+                      <div 
+                        className="flex flex-row items-center justify-center  font-medium gap-2 px-4"
+                      >
+                        <QrCode size={20} />
+                        <p>QRIS</p>
+                      </div>
+                    ),
+                    value: 'QRIS'
+                  }, {
+                    label: (
+                      <div 
+                        className="flex flex-row items-center justify-center font-medium gap-2 px-4"
+                      >
+                        <CreditCard size={20} />
+                        <p>Debit</p>
+                      </div>
+                    ),
+                    value: 'Debit'
+                  }]}
+                  className="w-full [&_.ant-segmented-item]:flex-1"
+                  size="large"
+                  value={paymentMethod}
+                  onChange={(val) => {
+                    setPaymentMethod(val as 'Cash' | 'QRIS' | 'Debit');
+                    setCashReceived(null);
+                  }}
+                />
+              </div>
+
+              <div>
+                {paymentMethod === 'Cash' && (
+                  <div className="mt-4 w-full">
+                    <h3 className="text-md font-semibold">Cash diterima:</h3>
+                    <InputNumber
+                      style={{width:'100%'}}
+                      value={cashReceived}
+                      onChange={(value) => setCashReceived(value)}
+                      controls={false}
+                      formatter={(value) => `Rp ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                      size="middle"
+                    />
+                    <div className="mt-4 flex gap-2">
+                      <Button variant="outline" className="cursor-pointer hover:bg-[#7C3BED] hover:text-white" onClick={() => setCashReceived(50000)}>Rp. 50.000</Button>
+                      <Button variant="outline" className="cursor-pointer hover:bg-[#7C3BED] hover:text-white" onClick={() => setCashReceived(100000)}>Rp. 100.000</Button>
+                      <Button variant="outline" className="cursor-pointer hover:bg-[#7C3BED] hover:text-white" onClick={() => setCashReceived(200000)}>Rp. 200.000</Button>
+                      <Button variant="outline" className="cursor-pointer hover:bg-[#7C3BED] hover:text-white" onClick={() => setCashReceived(500000)}>Rp. 500.000</Button>
+                    </div>
+                  </div>
+                )}
+
+                
+              </div>
+
             </div>
           </div>
         </Modal>
