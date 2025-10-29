@@ -1,13 +1,43 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import CheckoutProductModalProps from "./interfaces/CheckoutProductModalProps";
-import { InputNumber, Modal, Segmented } from "antd";
-import { CreditCard, QrCode, Trash2Icon, Wallet } from "lucide-react";
+import { InputNumber, Modal, QRCode, Segmented } from "antd";
+import { AlertCircle, CircleAlert, CreditCard, QrCode, Trash2Icon, Wallet } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { generateDynamicQRIS } from "@/utils/generateQRIS";
+import QRIS_CODE from "@/const/qr_code";
 
 const CheckoutProductModal : React.FC<CheckoutProductModalProps> = ({ isOpen, onClose, cart, setCart }) => {
   const [paymentMethod, setPaymentMethod] = useState<'Cash' | 'QRIS' | 'Debit'>('Cash');
   const [cashReceived, setCashReceived] = useState<number | null>(null);
-  console.log(paymentMethod)
+  const [totalAmount, setTotalAmount] = useState<number>(0);
+  const [qrCode, setQrCode] = useState<string>(QRIS_CODE);
+  const [qrLoading, setQrLoading] = useState<boolean>(false);
+
+  const handleQrRefresh = () => {
+    const newQrCode = generateDynamicQRIS(totalAmount);
+    setQrCode(newQrCode);
+    setQrLoading(false);
+  }
+
+  // useEffect(() => {
+  //   if (totalAmount > 0) {
+  //     setQrLoading(true);
+  //     const newQrCode = generateDynamicQRIS(totalAmount);
+  //     setQrCode(newQrCode);
+  //     setQrLoading(false);
+  //   }
+  // }, [totalAmount]);
+
+  useEffect(() => {
+    const total = cart.reduce((total, product) => {
+      const productTotal = product.units?.reduce((unitTotal, unit) => {
+        return unitTotal + (unit.price * unit.quantity);
+      }, 0) || 0;
+      return total + productTotal;
+    }, 0);
+    setTotalAmount(total);
+  }, [cart]);
+
   let idx = 0;
   const handleRemoveItem = (productId: string, unitId: string) => {
     setCart(prevCart => {
@@ -64,7 +94,7 @@ const CheckoutProductModal : React.FC<CheckoutProductModalProps> = ({ isOpen, on
                                     <p className="mx-2">x</p>
                                     <p>Rp {Number(unit.price).toLocaleString('id-ID')}</p>
                                   </div>
-                                  <p className=" font-semibold">Rp {Number(unit.quantity * unit.price).toLocaleString('id-ID')}</p>
+                                  <p className=" font-semibold">Rp {Number(totalAmount).toLocaleString('id-ID')}</p>
                                 </div>  
                               </div>
                               <button 
@@ -155,10 +185,42 @@ const CheckoutProductModal : React.FC<CheckoutProductModalProps> = ({ isOpen, on
                       <Button variant="outline" className="cursor-pointer hover:bg-[#7C3BED] hover:text-white" onClick={() => setCashReceived(200000)}>Rp. 200.000</Button>
                       <Button variant="outline" className="cursor-pointer hover:bg-[#7C3BED] hover:text-white" onClick={() => setCashReceived(500000)}>Rp. 500.000</Button>
                     </div>
+
+                    <div className="flex bg-white justify-between p-3 mt-3 border-2 rounded-lg"> 
+                      {cashReceived  != null && cashReceived < totalAmount && (
+                        <>
+                          <div className=" flex flex-row gap-3 items-center">
+                            <AlertCircle color="#F59F60" size={25} />
+                            <p className="text-lg font-medium text-[#F59F60]">Jumlah Kurang</p>
+                          </div>
+                          <div>
+                            <p className="text-md font-medium px-4 p-2 bg-red-500 rounded-xl text-white">Rp {((cashReceived ?? 0) - totalAmount).toLocaleString('id-ID')}</p>
+                          </div>
+                        </>
+                      )}
+
+                      {cashReceived != null && cashReceived >= totalAmount && (
+                        <>
+                          <div className=" flex flex-row gap-3 items-center">
+                            <CircleAlert color="#22C55E" size={25} />
+                            <p className="text-lg font-medium text-[#22C55E]">Kembalian</p>
+                          </div>
+                          <div>
+                            <p className="text-md font-medium px-4 p-2 bg-green-500 rounded-xl text-white">Rp {(cashReceived - totalAmount).toLocaleString('id-ID')}</p>
+                          </div>
+                        </>
+                      )}
+                    </div>
                   </div>
                 )}
 
-                
+                {(paymentMethod === 'QRIS') && (
+                  <div className="mt-4 w-full">
+                    <h3 className="text-md font-semibold">QRIS Code:</h3>
+                    <QRCode type="canvas" status={qrLoading ? "expired" : "active"} value={qrCode} onRefresh={handleQrRefresh} />
+                  </div>
+                )}
+
               </div>
 
             </div>
