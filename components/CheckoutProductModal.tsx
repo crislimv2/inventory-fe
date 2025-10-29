@@ -3,30 +3,13 @@ import CheckoutProductModalProps from "./interfaces/CheckoutProductModalProps";
 import { InputNumber, Modal, QRCode, Segmented } from "antd";
 import { AlertCircle, CircleAlert, CreditCard, QrCode, Trash2Icon, Wallet } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { generateDynamicQRIS } from "@/utils/generateQRIS";
 import QRIS_CODE from "@/const/qr_code";
+import Image from "next/image";
 
 const CheckoutProductModal : React.FC<CheckoutProductModalProps> = ({ isOpen, onClose, cart, setCart }) => {
   const [paymentMethod, setPaymentMethod] = useState<'Cash' | 'QRIS' | 'Debit'>('Cash');
   const [cashReceived, setCashReceived] = useState<number | null>(null);
   const [totalAmount, setTotalAmount] = useState<number>(0);
-  const [qrCode, setQrCode] = useState<string>(QRIS_CODE);
-  const [qrLoading, setQrLoading] = useState<boolean>(false);
-
-  const handleQrRefresh = () => {
-    const newQrCode = generateDynamicQRIS(totalAmount);
-    setQrCode(newQrCode);
-    setQrLoading(false);
-  }
-
-  // useEffect(() => {
-  //   if (totalAmount > 0) {
-  //     setQrLoading(true);
-  //     const newQrCode = generateDynamicQRIS(totalAmount);
-  //     setQrCode(newQrCode);
-  //     setQrLoading(false);
-  //   }
-  // }, [totalAmount]);
 
   useEffect(() => {
     const total = cart.reduce((total, product) => {
@@ -94,7 +77,7 @@ const CheckoutProductModal : React.FC<CheckoutProductModalProps> = ({ isOpen, on
                                     <p className="mx-2">x</p>
                                     <p>Rp {Number(unit.price).toLocaleString('id-ID')}</p>
                                   </div>
-                                  <p className=" font-semibold">Rp {Number(totalAmount).toLocaleString('id-ID')}</p>
+                                  <p className=" font-semibold">Rp {Number(unit.price).toLocaleString('id-ID')}</p>
                                 </div>  
                               </div>
                               <button 
@@ -215,9 +198,45 @@ const CheckoutProductModal : React.FC<CheckoutProductModalProps> = ({ isOpen, on
                 )}
 
                 {(paymentMethod === 'QRIS') && (
-                  <div className="mt-4 w-full">
-                    <h3 className="text-md font-semibold">QRIS Code:</h3>
-                    <QRCode type="canvas" status={qrLoading ? "expired" : "active"} value={qrCode} onRefresh={handleQrRefresh} />
+                  <div className="mt-4 flex flex-col">
+                    <div className="flex justify-center flex-col items-center mt-3 gap-4">
+                      <div className="w-10/12 text-center">
+                        <h1 className="font-bold text-lg">Toko Ci Ali, GRGL PTM</h1>
+                        <span className="text-sm text-black opacity-50">Jl. Jelambar Jaya 4 No. 18, RT.8/RW.3, Jelambar Baru, Kecamatan Grogol Petamburan, Kota Jakarta Barat,  Daerah Khusus Ibukota Jakarta</span>
+                      </div>
+                      <div className="border-2 rounded-lg flex items-center flex-col w-5/12 pb-6 text-center align-items-center ">
+                        <Image
+                          src="/qris_icon.jpg"
+                          width={100}
+                          height={100}
+                          alt="example"
+                          className=""
+                          draggable={false}
+                        />
+                        <h1 className="text-lg font-semibold flex items-center gap-1">
+                          <span className="text-gray-600 text-md font-semibold">Rp</span>
+                          {Number(totalAmount).toLocaleString('id-ID')}
+                        </h1>
+                        <div className="flex justify-center w-full relative">
+                          <div className="relative inline-block p-5 shadow-[0_0_20px_rgba(0,0,0,0.15)] rounded-lg">
+                            {/* Frame merah */}
+                            <Image
+                              src="/frame_qris.png"
+                              width={220}
+                              height={220}
+                              alt="frame"
+                              className="absolute top-0 left-0 z-0 rounded-lg"
+                              draggable={false}
+                            />
+
+                            {/* QR Code dengan jarak dari frame */}
+                            <div className="relative z-10 bg-white rounded-lg border-0">
+                              <QRCode type="canvas" value={QRIS_CODE} size={180} className="!border-0 !rounded-none"/>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 )}
 
