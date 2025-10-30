@@ -6,6 +6,7 @@ import { AlertCircle, CheckCircle2, QrCode, Trash2Icon, Wallet } from "lucide-re
 import { Button } from "@/components/ui/button";
 import QRIS_CODE from "@/const/qr_code";
 import Image from "next/image";
+import formatCurrency from "@/utils/formatCurrency";
 
 const CheckoutProductModal : React.FC<CheckoutProductModalProps> = ({ isOpen, onClose, cart, setCart }) => {
   const [paymentMethod, setPaymentMethod] = useState<'Cash' | 'QRIS' | 'Debit'>('Cash');
@@ -13,6 +14,8 @@ const CheckoutProductModal : React.FC<CheckoutProductModalProps> = ({ isOpen, on
   const [totalAmount, setTotalAmount] = useState<number>(0);
   const [selectedAmount, setSelectedAmount] = useState<number | null>(null);
   const amountButtons = [50000, 100000, 200000, 500000];
+  const [qrisLoading, setQrisLoading] = useState<boolean>(true);
+  const [qrisData, setQrisData] = useState<string>(QRIS_CODE);
 
   useEffect(() => {
     const total = cart.reduce((total, product) => {
@@ -23,6 +26,23 @@ const CheckoutProductModal : React.FC<CheckoutProductModalProps> = ({ isOpen, on
     }, 0);
     setTotalAmount(total);
   }, [cart]);
+
+  useEffect(() => {
+    setQrisLoading(true);
+  }, [totalAmount, paymentMethod]);
+
+  const handleQrisRefresh = async () => {
+    const amount = formatCurrency(totalAmount);
+    try {
+      const response = await fetch(`https://api-mininxd.vercel.app/qris?qris=${QRIS_CODE}&nominal=${amount}`);
+      const data = await response.json();
+      setQrisData(data.QR);
+    } catch (error) {
+      console.error("Error fetching QRIS data:", error);
+    } finally {
+      setQrisLoading(false);
+    }
+  };
 
   let idx = 0;
   const handleRemoveItem = (productId: string, unitId: string) => {
@@ -289,7 +309,7 @@ const CheckoutProductModal : React.FC<CheckoutProductModalProps> = ({ isOpen, on
 
                               {/* QR Code dengan jarak dari frame */}
                               <div className="relative z-10 bg-white rounded-lg border-0">
-                                <QRCode type="canvas" value={QRIS_CODE} size={180} className="!border-0 !rounded-none"/>
+                                <QRCode type="canvas" value={qrisData} onRefresh={() => handleQrisRefresh()} status={qrisLoading ? "expired" : "active"} size={180} className="!border-0 !rounded-none"/>
                               </div>
                             </div>
                           </div>
