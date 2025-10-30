@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import QRIS_CODE from "@/const/qr_code";
 import Image from "next/image";
 import formatCurrency from "@/utils/formatCurrency";
+import handleQRIS from "@/utils/handleQRIS";
 
 const CheckoutProductModal : React.FC<CheckoutProductModalProps> = ({ isOpen, onClose, cart, setCart }) => {
   const [paymentMethod, setPaymentMethod] = useState<'Cash' | 'QRIS' | 'Debit'>('Cash');
@@ -16,6 +17,8 @@ const CheckoutProductModal : React.FC<CheckoutProductModalProps> = ({ isOpen, on
   const amountButtons = [50000, 100000, 200000, 500000];
   const [qrisLoading, setQrisLoading] = useState<boolean>(true);
   const [qrisData, setQrisData] = useState<string>(QRIS_CODE);
+  const [qrImage, setQrImage] = useState("");
+  const [qrisString, setQrisString] = useState("");
 
   useEffect(() => {
     const total = cart.reduce((total, product) => {
@@ -33,9 +36,11 @@ const CheckoutProductModal : React.FC<CheckoutProductModalProps> = ({ isOpen, on
 
   const handleQrisRefresh = async () => {
     try {
-      const response = await fetch(`https://api-mininxd.vercel.app/qris?qris=${QRIS_CODE}&nominal=${totalAmount}`);
-      const data = await response.json();
-      setQrisData(data.QR);
+      // const response = await fetch(`https://api-mininxd.vercel.app/qris?qris=${QRIS_CODE}&nominal=${totalAmount}`);
+      // const data = await response.json();
+      // setQrisData(data.QR);
+      const qris = handleQRIS("ID10254493976740303UMI", totalAmount);
+      setQrisData(qris);
     } catch (error) {
       console.error("Error fetching QRIS data:", error);
     } finally {
