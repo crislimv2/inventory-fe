@@ -1,14 +1,15 @@
 import React, { useEffect, useState } from "react";
 import CheckoutProductModalProps from "./interfaces/CheckoutProductModalProps";
 import { InputNumber, Modal, QRCode, Segmented } from "antd";
-import { AlertCircle, CircleAlert, CreditCard, QrCode, Trash2Icon, Wallet } from "lucide-react";
+import type { InputNumberProps } from "antd";
+import { AlertCircle, CircleAlert, QrCode, Trash2Icon, Wallet } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import QRIS_CODE from "@/const/qr_code";
 import Image from "next/image";
 
 const CheckoutProductModal : React.FC<CheckoutProductModalProps> = ({ isOpen, onClose, cart, setCart }) => {
   const [paymentMethod, setPaymentMethod] = useState<'Cash' | 'QRIS' | 'Debit'>('Cash');
-  const [cashReceived, setCashReceived] = useState<number | null>(null);
+  const [cashReceived, setCashReceived] = useState<number | null>(0);
   const [totalAmount, setTotalAmount] = useState<number>(0);
 
   useEffect(() => {
@@ -36,6 +37,25 @@ const CheckoutProductModal : React.FC<CheckoutProductModalProps> = ({ isOpen, on
     });
   };
 
+  const formatter: InputNumberProps<number>["formatter"] = (value) => {
+    if (!value && value !== 0) return "";
+    const parts = value.toString().split(".");
+    const integerPart = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    const decimalPart = parts[1] ? `.${parts[1]}` : "";
+    return `Rp ${integerPart}${decimalPart}`;
+  };
+
+  // --- Parser: Convert from "Rp 20.000.000" -> 20000000 ---
+  const parser: InputNumberProps<number>["parser"] = (value) => {
+    if (!value) return 0;
+    const numeric = value.replace(/[Rp\s.]/g, ""); // remove Rp, spaces, and dots
+    return Number(numeric);
+  };
+
+  const onChange: InputNumberProps<number>["onChange"] = (value) => {
+    setCashReceived(value ?? 0);
+  };
+
   return (
     <div>
         <Modal
@@ -56,8 +76,9 @@ const CheckoutProductModal : React.FC<CheckoutProductModalProps> = ({ isOpen, on
           <div className="w-full flex flex-row gap-2">
             <div className="w-6/12 ">
               <div className="">
-                <div>
+                <div className="flex flex-row items-center justify-between">
                   <h2 className="text-lg font-semibold">Order Summary</h2>
+                  <h3 className="font-bold text-lg text-[#7C3BED] mr-3">{cart.reduce((acc, product) => acc + (product.units?.reduce((acc, unit) => acc + unit.quantity, 0) || 0), 0)} Items</h3>
                 </div>
                 <div className="flex flex-col gap-3">
                   <div className="bg-white rounded-lg overflow-y-auto h-[550px] border ">
@@ -131,25 +152,25 @@ const CheckoutProductModal : React.FC<CheckoutProductModalProps> = ({ isOpen, on
             <div className="w-6/12">
               <h2 className="text-lg font-semibold mb-2">Pembayaran</h2>  
               <div className="flex flex-col h-[550px]">
-                <div className="flex items-center w-full">
+                <div className="flex items-center justify-center w-full">
                   <Segmented
                     options={[{
                       label: (
                         <div 
-                          className="flex flex-row items-center justify-center font-medium gap-2 px-4"
+                          className="flex items-center justify-center font-medium flex-col sm:flex-col lg:flex-row gap-2 sm:gap-1"
                         >
-                          <Wallet size={20} />
-                          <p>Cash</p>
+                          <Wallet size={22} />
+                          <span>Cash</span>
                         </div>
                       ),
                       value: 'Cash'
                     }, {
                       label: (
                         <div 
-                          className="flex flex-row items-center justify-center  font-medium gap-2 px-4"
+                          className="flex items-center justify-center font-medium flex-col sm:flex-col lg:flex-row gap-2 sm:gap-1"
                         >
-                          <QrCode size={20} />
-                          <p>QRIS</p>
+                          <QrCode size={22}/>
+                          <span className="">QRIS</span>
                         </div>
                       ),
                       value: 'QRIS'
@@ -168,15 +189,17 @@ const CheckoutProductModal : React.FC<CheckoutProductModalProps> = ({ isOpen, on
                   {paymentMethod === 'Cash' && (
                     <div className="mt-4 w-full">
                       <h3 className="text-md font-semibold">Cash diterima:</h3>
-                      <InputNumber
-                        style={{width:'100%'}}
+                      <InputNumber<number>
+                        style={{ width: '100%' }}
                         value={cashReceived}
-                        onChange={(value) => setCashReceived(value)}
+                        onChange={onChange}
                         controls={false}
-                        formatter={(value) => `Rp ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                        placeholder="Masukkan jumlah cash diterima"
                         size="large"
+                        formatter={formatter}
+                        parser={parser}
                       />
-                      <div className="mt-4 flex gap-2">
+                      <div className="mt-4 flex gap-2 flex-wrap">
                         <Button variant="outline" className="cursor-pointer hover:bg-[#7C3BED] hover:text-white" onClick={() => setCashReceived(50000)}>Rp. 50.000</Button>
                         <Button variant="outline" className="cursor-pointer hover:bg-[#7C3BED] hover:text-white" onClick={() => setCashReceived(100000)}>Rp. 100.000</Button>
                         <Button variant="outline" className="cursor-pointer hover:bg-[#7C3BED] hover:text-white" onClick={() => setCashReceived(200000)}>Rp. 200.000</Button>
