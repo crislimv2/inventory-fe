@@ -32,9 +32,8 @@ const CheckoutProductModal : React.FC<CheckoutProductModalProps> = ({ isOpen, on
   }, [totalAmount, paymentMethod]);
 
   const handleQrisRefresh = async () => {
-    const amount = formatCurrency(totalAmount);
     try {
-      const response = await fetch(`https://api-mininxd.vercel.app/qris?qris=${QRIS_CODE}&nominal=${amount}`);
+      const response = await fetch(`https://api-mininxd.vercel.app/qris?qris=${QRIS_CODE}&nominal=${totalAmount}`);
       const data = await response.json();
       setQrisData(data.QR);
     } catch (error) {
