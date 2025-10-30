@@ -126,7 +126,7 @@ const CardLeftPanel = ({ setCart }: CardLeftPanelProps) => {
                 className="bg-white py-2"
               >
                 {product.imageUrl && (
-                  <div className="border-gray-600 border-1 rounded-lg">
+                  <div className="border-gray-600 border-2 rounded-lg">
                     <Card
                       hoverable
                       onClick={() => {
@@ -135,9 +135,11 @@ const CardLeftPanel = ({ setCart }: CardLeftPanelProps) => {
                       }}
                       size="small"
                       cover={
-                        <div className="aspect-[3/4] overflow-hidden">
+                        <div className="aspect-3/4 overflow-hidden">
                           <Image
                             src="/1rcgKA.jpg"
+                            width={400}
+                            height={200}
                             alt="example"
                             className="object-cover w-full h-full"
                             draggable={false}

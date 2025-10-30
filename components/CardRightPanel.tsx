@@ -211,6 +211,7 @@ const CardRightPanel = ({ cart, setCart }: CardRightPanelProps) => {
         isOpen={isCheckoutModalOpen}
         onClose={() => setIsCheckoutModalOpen(false)}
         cart={cart}
+        setCart={setCart}
       />
     </div>
   );

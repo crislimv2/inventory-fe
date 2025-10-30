@@ -120,6 +120,8 @@ const SelectedProductModal : React.FC<SelectedProductModalProps> = ({
             {/* === Product header === */}
             <div className="flex gap-4">
                 <Image
+                    width={70}
+                    height={80}
                     src={"/1rcgKA.jpg"}
                     alt={selectedProduct.name}
                     className="w-40 h-40 object-cover rounded-md border"
@@ -160,30 +162,30 @@ const SelectedProductModal : React.FC<SelectedProductModalProps> = ({
                                 </div>
                             </div>
 
-                            <div className="flex items-center gap-2 justify-between mt-3">
-                            <div className="flex gap-3 items-center">
-                                <Button
-                                    className="!bg-white !text-black hover:!bg-green-600 hover:!text-white"
-                                    size="middle"
-                                    shape="circle"
-                                    onClick={() => handleUpdateQuantity(unit.id, -1)}
-                                    icon={<Minus className="h-3 w-3" />}
-                                />
-                                <span className="text-base font-bold w-8 text-center">{unit.quantity}</span>
-                                <Button
-                                    className="!bg-white !text-black hover:!bg-green-600 hover:!text-white"
-                                    size="middle"
-                                    shape="circle"
-                                    onClick={() => handleUpdateQuantity(unit.id, 1)}
-                                    icon={<Plus className="h-3 w-3" />}
-                                />
-                            </div>
+                            <div className="flex flex-col sm:flex-row gap-2 justify-between mt-3">
+                                <div className="flex gap-3 items-center">
+                                    <Button
+                                        className="!bg-white !text-black hover:!bg-green-600 hover:!text-white"
+                                        size="middle"
+                                        shape="circle"
+                                        onClick={() => handleUpdateQuantity(unit.id, -1)}
+                                        icon={<Minus className="h-3 w-3" />}
+                                    />
+                                    <span className="text-base font-bold w-8 text-center">{unit.quantity}</span>
+                                    <Button
+                                        className="!bg-white !text-black hover:!bg-green-600 hover:!text-white"
+                                        size="middle"
+                                        shape="circle"
+                                        onClick={() => handleUpdateQuantity(unit.id, 1)}
+                                        icon={<Plus className="h-3 w-3" />}
+                                    />
+                                </div>
 
-                            {unit.quantity > 0 && (
-                                <span className="text-lg font-semibold text-primary w-full flex justify-end text-blue-600">
-                                Rp {Number(unit.price * unit.quantity).toLocaleString('id-ID')}
-                                </span>
-                            )}
+                                {unit.quantity > 0 && (
+                                    <span className="text-lg font-semibold text-primary w-full flex justify-start text-blue-600 sm:justify-end sm:mt-2">
+                                        Rp {Number(unit.price * unit.quantity).toLocaleString('id-ID')}
+                                    </span>
+                                )}
                             </div>
                         </div>
                     );
