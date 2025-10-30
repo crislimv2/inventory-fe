@@ -75,8 +75,8 @@ const CheckoutProductModal : React.FC<CheckoutProductModalProps> = ({ isOpen, on
           <div>
             <h2 className="text-2xl font-bold mb-2">Checkout</h2>
           </div>
-          <div className="w-full flex flex-row gap-2">
-            <div className="w-6/12 ">
+          <div className="w-full flex flex-col sm:flex-row gap-2">
+            <div className="w-full sm:w-6/12 ">
               <div className="">
                 <div className="flex flex-row items-center justify-between">
                   <h2 className="text-lg font-semibold">Order Summary</h2>
@@ -99,7 +99,7 @@ const CheckoutProductModal : React.FC<CheckoutProductModalProps> = ({ isOpen, on
                                 <div className="w-11/12 flex flex-row">
                                   <div className="w-11/12 flex flex-row items-center px-2">
                                     <div className="w-10/12 flex flex-col">
-                                      <div className="flex gap-2 items-center flex-row font-semibold">
+                                      <div className="flex gap-1 items-center flex-row font-semibold flex-wrap">
                                         <p className="text-md">{product.name}</p>
                                         <p className="text-sm">({unit.unitName})</p>
                                       </div>
@@ -149,9 +149,7 @@ const CheckoutProductModal : React.FC<CheckoutProductModalProps> = ({ isOpen, on
               </div>
             </div>
 
-
-
-            <div className="w-6/12">
+            <div className="w-full sm:w-6/12">
               <h2 className="text-lg font-semibold mb-2">Pembayaran</h2>  
               <div className="flex flex-col h-[550px]">
                 <div className="flex items-center justify-center w-full">
@@ -265,7 +263,7 @@ const CheckoutProductModal : React.FC<CheckoutProductModalProps> = ({ isOpen, on
                           <h1 className="font-bold text-lg">Toko Ci Ali, GRGL PTM</h1>
                           <span className="text-sm text-black opacity-50">Jl. Jelambar Jaya 4 No. 18, RT.8/RW.3, Jelambar Baru, Kecamatan Grogol Petamburan, Kota Jakarta Barat,  Daerah Khusus Ibukota Jakarta</span>
                         </div>
-                        <div className="rounded-lg flex items-center py-3 flex-col w-5/12 text-center align-items-center bg-white shadow-[0_0_20px_rgba(0,0,0,0.15)]">
+                        <div className="rounded-lg flex items-center py-3 flex-col min-w-[280px] text-center align-items-center bg-white shadow-[0_0_20px_rgba(0,0,0,0.15)]">
                           <Image
                             src="/qris_icon.jpg"
                             width={100}
@@ -303,7 +301,7 @@ const CheckoutProductModal : React.FC<CheckoutProductModalProps> = ({ isOpen, on
               </div>
               <div className="flex justify-end items-end w-full">
                 <Button 
-                  className="w-5/12 bg-[#7C3BED] hover:bg-[#7C3BED] text-white font-bold py-5 rounded-lg shadow-lg hover:cursor-pointer mt-5"
+                  className="w-7/12 bg-[#7C3BED] hover:bg-[#7C3BED] text-white font-bold py-5 rounded-lg shadow-lg hover:cursor-pointer mt-5"
                   onClick={() => {
                     // Handle payment confirmation logic here
                     onClose();
