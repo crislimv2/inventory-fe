@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import CheckoutProductModalProps from "./interfaces/CheckoutProductModalProps";
 import { InputNumber, Modal, QRCode, Segmented } from "antd";
 import type { InputNumberProps } from "antd";
-import { AlertCircle, CircleAlert, QrCode, Trash2Icon, Wallet } from "lucide-react";
+import { AlertCircle, CheckCircle2, QrCode, Trash2Icon, Wallet } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import QRIS_CODE from "@/const/qr_code";
 import Image from "next/image";
@@ -11,6 +11,8 @@ const CheckoutProductModal : React.FC<CheckoutProductModalProps> = ({ isOpen, on
   const [paymentMethod, setPaymentMethod] = useState<'Cash' | 'QRIS' | 'Debit'>('Cash');
   const [cashReceived, setCashReceived] = useState<number | null>(0);
   const [totalAmount, setTotalAmount] = useState<number>(0);
+  const [selectedAmount, setSelectedAmount] = useState<number | null>(null);
+  const amountButtons = [50000, 100000, 200000, 500000];
 
   useEffect(() => {
     const total = cart.reduce((total, product) => {
@@ -181,6 +183,7 @@ const CheckoutProductModal : React.FC<CheckoutProductModalProps> = ({ isOpen, on
                     onChange={(val) => {
                       setPaymentMethod(val as 'Cash' | 'QRIS' | 'Debit');
                       setCashReceived(null);
+                      setSelectedAmount(null);
                     }}
                   />
                 </div>
@@ -192,7 +195,11 @@ const CheckoutProductModal : React.FC<CheckoutProductModalProps> = ({ isOpen, on
                       <InputNumber<number>
                         style={{ width: '100%' }}
                         value={cashReceived}
-                        onChange={onChange}
+                        onClick={() => setSelectedAmount(null)}
+                        onChange={(value) => {
+                          onChange(value);
+                          setSelectedAmount(null);
+                        }}
                         controls={false}
                         placeholder="Masukkan jumlah cash diterima"
                         size="large"
@@ -200,36 +207,51 @@ const CheckoutProductModal : React.FC<CheckoutProductModalProps> = ({ isOpen, on
                         parser={parser}
                       />
                       <div className="mt-4 flex gap-2 flex-wrap">
-                        <Button variant="outline" className="cursor-pointer hover:bg-[#7C3BED] hover:text-white" onClick={() => setCashReceived(50000)}>Rp. 50.000</Button>
-                        <Button variant="outline" className="cursor-pointer hover:bg-[#7C3BED] hover:text-white" onClick={() => setCashReceived(100000)}>Rp. 100.000</Button>
-                        <Button variant="outline" className="cursor-pointer hover:bg-[#7C3BED] hover:text-white" onClick={() => setCashReceived(200000)}>Rp. 200.000</Button>
-                        <Button variant="outline" className="cursor-pointer hover:bg-[#7C3BED] hover:text-white" onClick={() => setCashReceived(500000)}>Rp. 500.000</Button>
+                        {amountButtons.map((amount) => (
+                          <Button
+                            key={amount}
+                            variant="outline"
+                            className={`cursor-pointer hover:bg-[#7C3BED] hover:text-white ${
+                              selectedAmount === amount ? 'bg-[#7C3BED] text-white' : ''
+                            }`}
+                            onClick={() => {
+                              setCashReceived(amount);
+                              setSelectedAmount(amount);
+                            }}
+                          >
+                            Rp. {amount.toLocaleString('id-ID')}
+                          </Button>
+                        ))}
                       </div>
 
                       {cashReceived != null && (
-                        <div className="flex bg-white justify-between p-3 mt-3 border-2 rounded-lg"> 
+                        <div className={`flex justify-between p-3 mt-3 border-2 rounded-lg bg-white 
+                          ${cashReceived < totalAmount ? 'border-amber-600/40' : 'border-green-500/40'}`}
+                        >
                           {cashReceived < totalAmount && (
-                            <>
-                              <div className=" flex flex-row gap-3 items-center">
-                                <AlertCircle color="#F59F60" size={25} />
-                                <p className="text-lg font-medium text-[#F59F60]">Jumlah Kurang</p>
+                            <div className="flex flex-col w-full gap-3 p-1">
+                              <div className=" flex flex-row gap-2 items-center">
+                                <AlertCircle color="#F59F60" size={20} />
+                                <p className="text-lg font-medium text-[#F6A71D]">Jumlah Kurang</p>
                               </div>
-                              <div>
-                                <p className="text-md font-medium px-4 p-2 bg-red-500 rounded-xl text-white">Rp {((cashReceived ?? 0) - totalAmount).toLocaleString('id-ID')}</p>
+                              <div className="border-t"></div>
+                              <div className="flex justify-end">
+                                <p className="text-lg font-bold text-[#F6A71D]">Rp. {((cashReceived ?? 0) - totalAmount).toLocaleString('id-ID')}</p>
                               </div>
-                            </>
+                            </div>
                           )}
 
                           {cashReceived >= totalAmount && (
-                            <>
-                              <div className=" flex flex-row gap-3 items-center">
-                                <CircleAlert color="#22C55E" size={25} />
+                            <div className="flex flex-col w-full gap-3 p-1">
+                              <div className=" flex flex-row gap-2 items-center">
+                                <CheckCircle2 color="#22C55E" size={20} />
                                 <p className="text-lg font-medium text-[#22C55E]">Kembalian</p>
                               </div>
-                              <div>
-                                <p className="text-md font-medium px-4 p-2 bg-green-500 rounded-xl text-white">Rp {(cashReceived - totalAmount).toLocaleString('id-ID')}</p>
+                              <div className="border-t"></div>
+                              <div className="flex justify-end">
+                                <p className="text-lg font-bold text-[#21C45D]">Rp {(cashReceived - totalAmount).toLocaleString('id-ID')}</p>
                               </div>
-                            </>
+                            </div>
                           )}
                         </div>
                       )}
