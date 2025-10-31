@@ -16,8 +16,7 @@ const CardRightPanel = ({ cart, setCart }: CardRightPanelProps) => {
   const [selectedUnitId, setSelectedUnitId] = useState<string | null>(null);
   const [actionButton, setActionButton] = useState<"qty" | "price" | null>(null);
   const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState<boolean>(false);
-  const cardRef = useRef<HTMLDivElement | null>(null);
-
+  const cardRef = useRef<HTMLDivElement | null>(null)
 
   const total = useMemo(() => {
     return cart.reduce((sum, item) => 
@@ -212,6 +211,7 @@ const CardRightPanel = ({ cart, setCart }: CardRightPanelProps) => {
         onClose={() => setIsCheckoutModalOpen(false)}
         cart={cart}
         setCart={setCart}
+        setIsCheckoutModalOpen={setIsCheckoutModalOpen}
       />
     </div>
   );

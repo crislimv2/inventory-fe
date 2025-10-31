@@ -165,7 +165,7 @@ const SelectedProductModal : React.FC<SelectedProductModalProps> = ({
                             <div className="flex flex-col sm:flex-row gap-2 justify-between mt-3">
                                 <div className="flex gap-3 items-center">
                                     <Button
-                                        className="!bg-white !text-black hover:!bg-green-600 hover:!text-white"
+                                        className="bg-white! text-black! hover:bg-green-600! hover:text-white!"
                                         size="middle"
                                         shape="circle"
                                         onClick={() => handleUpdateQuantity(unit.id, -1)}
@@ -173,7 +173,7 @@ const SelectedProductModal : React.FC<SelectedProductModalProps> = ({
                                     />
                                     <span className="text-base font-bold w-8 text-center">{unit.quantity}</span>
                                     <Button
-                                        className="!bg-white !text-black hover:!bg-green-600 hover:!text-white"
+                                        className="bg-white! text-black! hover:bg-green-600! hover:text-white!"
                                         size="middle"
                                         shape="circle"
                                         onClick={() => handleUpdateQuantity(unit.id, 1)}
@@ -182,7 +182,7 @@ const SelectedProductModal : React.FC<SelectedProductModalProps> = ({
                                 </div>
 
                                 {unit.quantity > 0 && (
-                                    <span className="text-lg font-semibold text-primary w-full flex justify-start text-blue-600 sm:justify-end sm:mt-2">
+                                    <span className="text-lg font-semibold w-full flex justify-start text-blue-600 sm:justify-end sm:mt-2">
                                         Rp {Number(unit.price * unit.quantity).toLocaleString('id-ID')}
                                     </span>
                                 )}

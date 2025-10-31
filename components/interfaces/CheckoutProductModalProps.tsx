@@ -5,5 +5,6 @@ export interface CheckoutProductModalProps {
   onClose: () => void;
   cart: Product[] | [];
   setCart: React.Dispatch<React.SetStateAction<Product[]>>;
+  setIsCheckoutModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
 };
 export default CheckoutProductModalProps;
