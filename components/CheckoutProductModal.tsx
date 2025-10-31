@@ -17,8 +17,6 @@ const CheckoutProductModal : React.FC<CheckoutProductModalProps> = ({ isOpen, on
   const amountButtons = [50000, 100000, 200000, 500000];
   const [qrisLoading, setQrisLoading] = useState<boolean>(true);
   const [qrisData, setQrisData] = useState<string>(QRIS_CODE);
-  const [qrImage, setQrImage] = useState("");
-  const [qrisString, setQrisString] = useState("");
 
   useEffect(() => {
     const total = cart.reduce((total, product) => {
@@ -46,6 +44,11 @@ const CheckoutProductModal : React.FC<CheckoutProductModalProps> = ({ isOpen, on
     } finally {
       setQrisLoading(false);
     }
+  };
+
+  const handleQrisStatus = () => {
+    if(totalAmount <= 0) return "expired";
+    return qrisLoading ? "expired" : "active";
   };
 
   let idx = 0;
@@ -313,7 +316,7 @@ const CheckoutProductModal : React.FC<CheckoutProductModalProps> = ({ isOpen, on
 
                               {/* QR Code dengan jarak dari frame */}
                               <div className="relative z-10 bg-white rounded-lg border-0">
-                                <QRCode type="canvas" value={qrisData} onRefresh={() => handleQrisRefresh()} status={qrisLoading ? "expired" : "active"} size={180} className="!border-0 !rounded-none"/>
+                                <QRCode type="canvas" value={qrisData} onRefresh={() => handleQrisRefresh()} status={handleQrisStatus()} size={180} className="border-0! rounded-none!"/>
                               </div>
                             </div>
                           </div>
