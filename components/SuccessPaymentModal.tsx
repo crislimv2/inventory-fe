@@ -59,7 +59,7 @@ const SuccessPaymentModal: React.FC<SuccessPaymentModalProps> = ({ isOpen, produ
                 </div>
                 ${paymentMethod === 'Cash' ? `
                     <div class="row">
-                        <span>Cash</span>
+                        <span>Bayar</span>
                         <span>Rp. ${cashReceived.toLocaleString('id-ID')}</span>
                     </div>
                     <div class="row">
