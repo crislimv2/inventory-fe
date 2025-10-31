@@ -2,21 +2,22 @@ import React, { useEffect, useState } from "react";
 import CheckoutProductModalProps from "./interfaces/CheckoutProductModalProps";
 import { InputNumber, Modal, QRCode, Segmented } from "antd";
 import type { InputNumberProps } from "antd";
-import { AlertCircle, CheckCircle2, QrCode, Trash2Icon, Wallet } from "lucide-react";
+import { AlertCircle, CheckCircle2, LoaderCircleIcon, QrCode, Trash2Icon, Wallet } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import QRIS_CODE from "@/const/qr_code";
 import Image from "next/image";
-import formatCurrency from "@/utils/formatCurrency";
 import handleQRIS from "@/utils/handleQRIS";
+import SuccessPaymentModal from "./SuccessPaymentModal";
 
-const CheckoutProductModal : React.FC<CheckoutProductModalProps> = ({ isOpen, onClose, cart, setCart }) => {
+const CheckoutProductModal : React.FC<CheckoutProductModalProps> = ({ isOpen, onClose, cart, setCart, setIsCheckoutModalOpen }) => {
   const [paymentMethod, setPaymentMethod] = useState<'Cash' | 'QRIS' | 'Debit'>('Cash');
-  const [cashReceived, setCashReceived] = useState<number | null>(0);
+  const [cashReceived, setCashReceived] = useState<number>(0);
   const [totalAmount, setTotalAmount] = useState<number>(0);
   const [selectedAmount, setSelectedAmount] = useState<number | null>(null);
   const amountButtons = [50000, 100000, 200000, 500000];
   const [qrisLoading, setQrisLoading] = useState<boolean>(true);
   const [qrisData, setQrisData] = useState<string>(QRIS_CODE);
+  const [isSuccessModalOpen, setIsSuccessModalOpen] = useState<boolean>(false);
 
   useEffect(() => {
     const total = cart.reduce((total, product) => {
@@ -93,6 +94,7 @@ const CheckoutProductModal : React.FC<CheckoutProductModalProps> = ({ isOpen, on
           onCancel={onClose}
           maskClosable={false}
           footer={null}
+          className={isSuccessModalOpen ? "blur-sm" : ""}
           styles={{
             content: {
               backgroundColor: '#f3f4f6',
@@ -207,7 +209,7 @@ const CheckoutProductModal : React.FC<CheckoutProductModalProps> = ({ isOpen, on
                     value={paymentMethod}
                     onChange={(val) => {
                       setPaymentMethod(val as 'Cash' | 'QRIS' | 'Debit');
-                      setCashReceived(null);
+                      setCashReceived(0);
                       setSelectedAmount(null);
                     }}
                   />
@@ -330,11 +332,10 @@ const CheckoutProductModal : React.FC<CheckoutProductModalProps> = ({ isOpen, on
                 <Button 
                   className="w-7/12 bg-[#7C3BED] hover:bg-[#7C3BED] text-white font-bold py-5 rounded-lg shadow-lg hover:cursor-pointer mt-5"
                   onClick={() => {
-                    // Handle payment confirmation logic here
-                    onClose();
+                    setIsSuccessModalOpen(true);
                   }}
                 >
-                  Confirm Payment
+                  {isSuccessModalOpen ? <LoaderCircleIcon className="animate-spin" size={24} /> : "Confirm Payment"}
                 </Button>
               </div>
 
@@ -342,6 +343,19 @@ const CheckoutProductModal : React.FC<CheckoutProductModalProps> = ({ isOpen, on
             </div>
           </div>
         </Modal>
+        <SuccessPaymentModal 
+          isOpen={isSuccessModalOpen} 
+          paymentMethod={paymentMethod}
+          onClose={() => {
+            onClose();
+            setIsSuccessModalOpen(false);
+          }} 
+          products={cart} 
+          setCart={setCart}
+          totalAmount={totalAmount} 
+          setIsCheckoutModalOpen={setIsCheckoutModalOpen}
+          cashReceived={cashReceived}
+        />
     </div>
     );
 };

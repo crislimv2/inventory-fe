@@ -148,7 +148,7 @@ const CardLeftPanel = ({ setCart }: CardLeftPanelProps) => {
                       }
                       className="w-full"
                     >
-                      <p className="text-md font-semibold line-clamp-2 min-h-[48px]">
+                      <p className="text-md font-semibold line-clamp-2 min-h-12">
                         {product.name}
                       </p>
                     </Card>
