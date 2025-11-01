@@ -65,7 +65,13 @@ const SuccessPaymentModal: React.FC<SuccessPaymentModalProps> = ({ isOpen, produ
             <div class="center bold large">Toko Ci  Ali</div>
             <div class="">Jelambar</div>
             <div class="row date-time-row">
-                <span>${new Date().toLocaleDateString('id-ID')}</span>
+                <span>${new Intl.DateTimeFormat('id-ID', {
+                    weekday: 'long',
+                    day: 'numeric',
+                    month: 'numeric',
+                    year: 'numeric'
+                    }).format(new Date())}
+                </span>
                 <span>${new Date().toLocaleTimeString('id-ID').replace(/\./g, ':')}</span>
             </div>
             <div class="divider"></div>
