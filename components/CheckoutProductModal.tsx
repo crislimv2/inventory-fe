@@ -2,19 +2,21 @@ import React, { useEffect, useState } from "react";
 import CheckoutProductModalProps from "./interfaces/CheckoutProductModalProps";
 import { InputNumber, Modal, QRCode, Segmented } from "antd";
 import type { InputNumberProps } from "antd";
-import { AlertCircle, CheckCircle2, LoaderCircleIcon, QrCode, Trash2Icon, Wallet } from "lucide-react";
+import { AlertCircle, CheckCircle2, Download, LoaderCircleIcon, QrCode, Trash2Icon, Wallet } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import QRIS_CODE from "@/const/qr_code";
 import Image from "next/image";
 import handleQRIS from "@/utils/handleQRIS";
 import SuccessPaymentModal from "./SuccessPaymentModal";
+import QRCodeButton from "qrcode";
+
 
 const CheckoutProductModal : React.FC<CheckoutProductModalProps> = ({ isOpen, onClose, cart, setCart, setIsCheckoutModalOpen }) => {
   const [paymentMethod, setPaymentMethod] = useState<'Cash' | 'QRIS' | 'Debit'>('Cash');
   const [cashReceived, setCashReceived] = useState<number>(0);
   const [totalAmount, setTotalAmount] = useState<number>(0);
   const [selectedAmount, setSelectedAmount] = useState<number | null>(null);
-  const amountButtons = [50000, 100000, 200000, 500000];
+  const amountButtons = [10000, 20000, 50000, 70000, 100000, 150000, 200000, 250000, 500000];
   const [qrisLoading, setQrisLoading] = useState<boolean>(true);
   const [qrisData, setQrisData] = useState<string>(QRIS_CODE);
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState<boolean>(false);
@@ -46,6 +48,26 @@ const CheckoutProductModal : React.FC<CheckoutProductModalProps> = ({ isOpen, on
       setQrisLoading(false);
     }
   };
+
+  const handleDownloadQRIS = async () => {
+    try {
+      const newQris = handleQRIS("ID10254493976740303UMI", totalAmount);
+      setQrisData(newQris);
+
+      const qrPng = await QRCodeButton.toDataURL(newQris);
+      const link = document.createElement("a");
+      link.href = qrPng;
+      link.download = "qris.png";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (err) {
+      console.error("Failed to download QR:", err);
+    } finally {
+      setQrisLoading(false);
+    }
+  };
+
 
   const handleQrisStatus = () => {
     if(totalAmount <= 0) return "expired";
@@ -321,6 +343,15 @@ const CheckoutProductModal : React.FC<CheckoutProductModalProps> = ({ isOpen, on
                                 <QRCode type="canvas" value={qrisData} onRefresh={() => handleQrisRefresh()} status={handleQrisStatus()} size={180} className="border-0! rounded-none!"/>
                               </div>
                             </div>
+                          </div>
+                          <div>
+                            <Button
+                              variant="outline"
+                              className="mt-3 mb-1 hover:cursor-pointer bg-white"
+                              onClick={async () => await handleDownloadQRIS()}
+                            >
+                              <Download />
+                            </Button>
                           </div>
                         </div>
                       </div>

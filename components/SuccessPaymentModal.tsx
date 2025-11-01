@@ -7,7 +7,7 @@ import success from '../src/animations/Success.json';
 import Lottie from 'lottie-react';
 
 const SuccessPaymentModal: React.FC<SuccessPaymentModalProps> = ({ isOpen, products, onClose, totalAmount, setIsCheckoutModalOpen, setCart, paymentMethod, cashReceived }) => {
-    const label = cashReceived <= totalAmount ? 'Credit' : 'Change';
+    const label = cashReceived <= totalAmount ? 'Credit' : 'Kembali';
     const totalQuantity = products.reduce((sum, product) => {
         const productTotal = product.units?.reduce((unitSum, unit) => unitSum + (unit.quantity || 0), 0) || 0;
         return sum + productTotal;
@@ -140,14 +140,26 @@ const SuccessPaymentModal: React.FC<SuccessPaymentModalProps> = ({ isOpen, produ
                     src=""
                     autoplay
                 /> */}
-                <Lottie animationData={success} loop={false} style={{ width: 150, height: 150 }} />
+                <Lottie animationData={success} loop={true} style={{ width: 150, height: 150 }} />
                 <h2 className="text-2xl font-semibold">Pembayaran Berhasil</h2>
                 <div className="text-gray-600">
                     <span className="text-lg">Your transaction has been completed successfully via {paymentMethod}.</span>
                 </div>
-                <div className="mt-1">
-                    <span className="text-black text-lg font-semibold">Total: Rp. {Number(totalAmount).toLocaleString('id-ID')}</span>
+                <div className="flex flex-col items-center justify-between w-full">
+                    <div className="flex flex-row justify-between items-center w-full">
+                        <span className="text-black text-lg font-semibold">Total:</span>
+                        <span className="text-lg font-semibold">Rp. {Number(totalAmount).toLocaleString('id-ID')}</span>
+                    </div>
+                    <div className="flex flex-row justify-between items-center w-full">
+                        <span className="text-black text-lg font-semibold">Bayar:</span>
+                        <span className="text-lg font-semibold">Rp. {Number(cashReceived).toLocaleString('id-ID')}</span>
+                    </div>
+                    <div  className="flex flex-row justify-between items-center w-full">
+                        <span className="text-black text-lg font-semibold">{label}:</span>
+                        <span className="text-lg font-semibold">Rp. {Number(cashReceived - totalAmount).toLocaleString('id-ID')}</span>
+                    </div>
                 </div>
+
             </div>
             <div className="mt-1">
                 <div className="w-full flex flex-col sm:flex-row items-center justify-center text-center gap-2 my-2">
