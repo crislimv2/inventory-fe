@@ -347,7 +347,7 @@ const CheckoutProductModal : React.FC<CheckoutProductModalProps> = ({ isOpen, on
                           <div>
                             <Button
                               variant="outline"
-                              className="mt-3 mb-1 hover:cursor-pointer bg-white"
+                              className="mt-3 mb-1 w-8 h-8 hover:cursor-pointer bg-white"
                               onClick={async () => await handleDownloadQRIS()}
                             >
                               <Download />
