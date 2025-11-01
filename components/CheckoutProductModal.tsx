@@ -60,7 +60,7 @@ const CheckoutProductModal : React.FC<CheckoutProductModalProps> = ({ isOpen, on
       link.download = "qris.png";
       document.body.appendChild(link);
       link.click();
-      document.body.removeChild(link);
+      link.remove();
     } catch (err) {
       console.error("Failed to download QR:", err);
     } finally {
