@@ -1,8 +1,6 @@
 import { Modal } from "antd";
 import { Button } from "@/components/ui/button";
 import { SuccessPaymentModalProps } from "./interfaces/SuccessPaymentModalProps";
-import { CheckCircle2 } from "lucide-react";
-import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 import success from '../src/animations/Success.json';
 import Lottie from 'lottie-react';
 
@@ -63,7 +61,7 @@ const SuccessPaymentModal: React.FC<SuccessPaymentModalProps> = ({ isOpen, produ
             <body>
             <!-- Optional Store Header -->
             <div class="center bold large">Toko Ci  Ali</div>
-            <div class="">Jelambar</div>
+            <!-- <div class="">Jelambar</div> -->
             <div class="row date-time-row">
                 <span>${new Intl.DateTimeFormat('id-ID', {
                     weekday: 'long',
@@ -72,7 +70,7 @@ const SuccessPaymentModal: React.FC<SuccessPaymentModalProps> = ({ isOpen, produ
                     year: 'numeric'
                     }).format(new Date())}
                 </span>
-                <span>${new Date().toLocaleTimeString('id-ID').replace(/\./g, ':')}</span>
+                <span>${new Date().toLocaleTimeString('id-ID').replaceAll('.', ':')}</span>
             </div>
             <div class="divider"></div>
 
@@ -119,8 +117,16 @@ const SuccessPaymentModal: React.FC<SuccessPaymentModalProps> = ({ isOpen, produ
             </html>
         `;
 
-        printWindow.document.write(receiptHTML);
-        printWindow.document.close();
+        // ✅ Completely avoid document.write()
+        const doc = printWindow.document;
+        doc.open();
+        doc.close();
+
+        // Inject HTML safely
+        const parser = new DOMParser();
+        const newDoc = parser.parseFromString(receiptHTML, 'text/html');
+        doc.replaceChild(doc.importNode(newDoc.documentElement, true), doc.documentElement);
+
         printWindow.focus();
 
         // Wait a bit to ensure styles and DOM are loaded before printing
