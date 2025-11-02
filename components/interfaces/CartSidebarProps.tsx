@@ -5,6 +5,6 @@ export interface CartSidebarProps {
     isOpen: boolean;
     onToggle: () => void;
     items: Product[];
-    onRemoveItem: (unitId: string) => void;
+    onRemoveItem: (productId:string, unitId: string) => void;
     onUpdateItem: (productId: string, unitId: string, updates: Partial<ProductUnit>) => void;
 }

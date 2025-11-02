@@ -2,20 +2,58 @@ import { ShoppingCart, Trash2, X } from "lucide-react";
 import { CartSidebarProps } from "../../components/interfaces/CartSidebarProps";
 import { Button } from "./ui/button";
 import { ScrollArea } from "./ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
-import { Input } from "./ui/input";
-
+import { InputNumber, InputNumberProps } from "antd";
+import { toast } from "sonner"
 export function CartSidebar({isOpen, onToggle, items, onRemoveItem, onUpdateItem}: CartSidebarProps) {
     let index=0;
-    const total = items.map(item => 
-        item.units?.reduce((unitSum, unit) => unitSum + ((unit.price || 0) * (unit.quantity || 0)), 0) || 0
-    );
+
+    const total = items.reduce((total, item) => {
+      const itemTotal = item.units?.reduce(
+        (sum, unit) => sum + ((unit.price || 0) * (unit.quantity || 0)),
+        0
+      ) || 0;
+      return total + itemTotal;
+    }, 0);
+
+    const grandTotal = Math.round(total);
+
 
     const handleQuantityChange = (itemId: string, unitId: string, value: number) => {
       onUpdateItem(itemId, unitId, { quantity: value });
     };
     const handlePriceChange = (itemId: string, unitId: string, value: number) => {
       onUpdateItem(itemId, unitId, { price: value });
+    };
+
+    const handleTotalChange = (
+      itemId: string, 
+      unitId: string, 
+      currentTotal: number, 
+      unitQty: number
+    ) => {
+      const newTotal = Number(currentTotal) || 0;
+      if (unitQty <= 0) return;
+
+      // Multiply, round, divide to avoid floating-point loss
+      const preciseDivision = newTotal / unitQty;
+      const newPrice = Math.round((preciseDivision + Number.EPSILON) * 100) / 100;
+
+      onUpdateItem(itemId, unitId, { price: newPrice });
+    }
+
+    const formatter: InputNumberProps<number>["formatter"] = (value) => {
+      if (!value && value !== 0) return "";
+      const parts = value.toString().split(".");
+      const integerPart = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+      const decimalPart = parts[1] ? `.${parts[1]}` : "";
+      return `Rp ${integerPart}${decimalPart}`;
+    };
+    
+    // --- Parser: Convert from "Rp 20.000.000" -> 20000000 ---
+    const parser: InputNumberProps<number>["parser"] = (value) => {
+      if (!value) return 0;
+      const numeric = value.replace(/[Rp\s.]/g, ""); // remove Rp, spaces, and dots
+      return Number(numeric);
     };
 
     return (
@@ -86,52 +124,68 @@ export function CartSidebar({isOpen, onToggle, items, onRemoveItem, onUpdateItem
                                                 variant="ghost"
                                                 size="icon"
                                                 className="h-6 w-6 text-destructive hover:text-destructive hover:bg-destructive/10 shrink-0"
-                                                onClick={() => onRemoveItem(item.id)}
+                                                onClick={() => onRemoveItem(item.id, unit.id)}
                                             >
                                                 <Trash2 className="h-3 w-3" />
                                             </Button>
                                             </div>
                                             
                                             <div className="grid grid-cols-2 gap-2 pl-9">
-                                            <div>
-                                                <label className="text-xs text-muted-foreground mb-1 block">Qty</label>
-                                                <Input
-                                                  type="number"
-                                                  max="9999"
-                                                  pattern="[0-9]*"
-                                                  value={unit.quantity}
-                                                  onChange={(e) => {
-                                                    console.log(e.target.value);
-                                                    handleQuantityChange(item.id, unit.id, Number(e.target.value))
-                                                  }}
-                                                  className="h-8 text-sm"
-                                                />
-                                            </div>
-                                            <div>
-                                                <label className="text-xs text-muted-foreground mb-1 block">Price</label>
-                                                <Input
-                                                type="number"
-                                                min="0"
-                                                value={unit.price}
-                                                  onChange={(e) => handlePriceChange(item.id, unit.id, Number(e.target.value))}
-                                                className="h-8 text-sm"
-                                                />
-                                            </div>
+                                              <div>
+                                                  <label className="text-xs text-muted-foreground mb-1 block">Qty</label>
+                                                  <InputNumber<number>
+                                                    style={{ width: '70%' }}
+                                                    min={0}
+                                                    max={999}
+                                                    pattern="[0-9]*"
+                                                    value={unit.quantity}
+                                                    onChange={(e) => {
+                                                      handleQuantityChange(item.id, unit.id, Number(e))
+                                                    }}
+                                                    controls={false}
+                                                    size="middle"
+                                                  />
+                                              </div>
+                                              <div>
+                                                  <label className="text-xs text-muted-foreground mb-1 block">Price</label>
+                                                  <InputNumber<number>
+                                                    style={{ width: '100%' }}
+                                                    min={0}
+                                                    value={unit.price}
+                                                    onChange={(e) => handlePriceChange(item.id, unit.id, Number(e))}
+                                                    controls={false}
+                                                    size="middle"
+                                                    formatter={formatter}
+                                                    parser={parser}
+                                                  />
+                                              </div>
                                             </div>
                                             
                                             <div className="pl-9">
-                                            <label className="text-xs text-muted-foreground mb-1 block">Total</label>
-                                            <Input
-                                                type="number"
-                                                min="0"
-                                                value={unit.price * unit.quantity}
-                                                onChange={(e) => {
-                                                const newTotal = parseInt(e.target.value) || 0;
-                                                const newPrice = unit.quantity > 0 ? Math.round(newTotal / unit.quantity) : 0;
+                                              <label className="text-xs text-muted-foreground mb-1 block">Total</label>
+                                              <InputNumber<number>
+                                                style={{ width: '100%', fontWeight: '600' }}
+                                                value={Math.round(unit.price * unit.quantity)}
+                                                controls={false}
+                                                onKeyDown={(e) => {
+                                                  if (e.key === "-" || e.key === "e" || e.key === "+") e.preventDefault();
                                                 }}
-                                                className="h-8 text-sm font-semibold"
-                                            />
-                                        </div>
+                                                size="middle"
+                                                formatter={formatter}
+                                                parser={parser}
+                                                // onChange={(e) => {
+                                                //   handleTotalChange(item.id, unit.id, Number(e), unit.quantity || 0);
+                                                // }}
+                                                onBlur={(e) => {
+                                                  const rawValue = e.target.value ? parser(e.target.value) : 0;
+                                                  handleTotalChange(item.id, unit.id, rawValue, unit.quantity || 0);
+                                                }}
+                                                onPressEnter={(e) => {
+                                                  const rawValue = Number((e.target as HTMLInputElement).value.replace(/[Rp\s.]/g, "")) || 0;
+                                                  handleTotalChange(item.id, unit.id, rawValue, unit.quantity || 0);
+                                                }}
+                                              />
+                                            </div>
                                     </div>
                                 )
                             })
@@ -145,7 +199,7 @@ export function CartSidebar({isOpen, onToggle, items, onRemoveItem, onUpdateItem
                     <div className="flex justify-between items-center">
                     <span className="text-lg font-semibold">Total</span>
                     <span className="text-2xl font-bold text-primary">
-                        Rp. {total.toLocaleString()}
+                        Rp. {grandTotal.toLocaleString()}
                     </span>
                     </div>
                     <Button className="w-full" size="lg" disabled={items.length === 0}>

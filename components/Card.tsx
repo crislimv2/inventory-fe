@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { dummyData, Product } from "./interfaces/Product";
 import { CartSidebar } from "@/components/CartSidebar";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,7 @@ import { ProductCard } from "@/components/ProductCard";
 import SelectedProductModal from "./SelectedProductModal";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ProductUnit } from "./interfaces/ProductUnit";
+import { toast } from "sonner"
 
 const Card = () => {
   const [cart, setCart] = useState<Product[]>([]);
@@ -23,9 +24,17 @@ const Card = () => {
     product.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const removeFromCart = (id: string) => {
-    setCart((prev) => prev.filter((item) => item.id !== id));
-    // toast.info("Item removed from cart");
+  const removeFromCart = (productId:string, unitId: string) => {
+    // setCart((prev) => prev.filter((item) => item.id !== id));
+    setCart((prev) =>
+      prev.map((item) =>
+        item.id === productId ? {
+          ...item,
+          units: item.units?.filter((unit) => unit.id !== unitId)
+        } : item
+      ).filter(item => item.units && item.units.length > 0) // Remove product if no units left
+    );
+    toast.info("Item removed from cart");
   };
 
   const updateCartItem = (productId:string, unitId: string, updates: Partial<ProductUnit>) => {
