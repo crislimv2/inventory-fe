@@ -85,7 +85,7 @@ const Card = () => {
         setIsCheckoutModalOpen={setIsCheckoutModalOpen}
       />
       <main className="flex-1 flex flex-col h-screen">
-        <div className="p-4 lg:p-4 flex flex-col flex-1 min-h-0">
+        <div className="p-0 m-0 flex flex-col flex-1 min-h-0">
           {/* Header */}
           <div className="flex items-center gap-4 mb-6">
             <Button
@@ -101,7 +101,7 @@ const Card = () => {
 
           {/* Product Grid */}
           <ScrollArea className="flex-1 min-h-0">
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 w-full">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-6 gap-2 w-full p-5">
               {filteredProducts.map((product) => (
                 <ProductCard
                   key={product.id}

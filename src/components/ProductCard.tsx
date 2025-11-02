@@ -4,7 +4,7 @@ import { Card, CardContent } from "./ui/card";
 export function ProductCard({ name, image, units, onClick, cartQuantity }: ProductCardProps) {
   return (
     <Card 
-      className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer shadow-[0_0_20px_rgba(0,0,0,0.15)]"
+      className="overflow-hidden hover:shadow-lg cursor-pointer shadow-[0_0_20px_rgba(0,0,0,0.15)] transition duration-200 ease-in-out hover:-translate-y-1 hover:scale-110 border-2 m-1"
       onClick={onClick}
     >
       <CardContent className="p-0">
