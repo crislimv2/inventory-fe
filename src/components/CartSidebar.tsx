@@ -110,7 +110,7 @@ export function CartSidebar({isOpen, onToggle, items, onRemoveItem, onUpdateItem
                                 return (
                                     <div 
                                         key={unit.id}
-                                        className="bg-muted/50 rounded-xl hover:bg-gray-200/90 space-y-2 px-2 py-1 transition duration-200 ease-in-out hover:-translate-y-1 hover:scale-110"
+                                        className="bg-muted/50 rounded-xl hover:bg-gray-200/90 space-y-2 px-2 py-1 transition duration-200 ease-in-out hover:-translate-y-1 hover:scale-100"
                                     >
                                       <div className="flex items-start gap-3">
                                           <div className="flex items-center justify-center w-6 h-6 rounded-full bg-[#7C3BED] text-primary-foreground text-xs font-medium shrink-0">
