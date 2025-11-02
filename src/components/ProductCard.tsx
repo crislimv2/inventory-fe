@@ -1,7 +1,7 @@
 import Image from "next/image";
 import { Card, CardContent } from "./ui/card";
 
-export function ProductCard({ name, image, units, onClick }: ProductCardProps) {
+export function ProductCard({ name, image, units, onClick, cartQuantity }: ProductCardProps) {
   return (
     <Card 
       className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer shadow-[0_0_20px_rgba(0,0,0,0.15)]"
@@ -14,6 +14,11 @@ export function ProductCard({ name, image, units, onClick }: ProductCardProps) {
             alt={name}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
             /> */}
+            {cartQuantity > 0 && (
+              <div className="absolute top-2 right-2 z-10 bg-[#7C3BED] text-primary-foreground rounded-full w-8 h-8 flex items-center justify-center text-xs font-bold shadow-lg">
+                {cartQuantity}
+              </div>
+            )}
             <Image
                 src="/1rcgKA.jpg"
                 width={600}

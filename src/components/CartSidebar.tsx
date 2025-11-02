@@ -4,7 +4,7 @@ import { Button } from "./ui/button";
 import { ScrollArea } from "./ui/scroll-area";
 import { InputNumber, InputNumberProps } from "antd";
 import { toast } from "sonner"
-export function CartSidebar({isOpen, onToggle, items, onRemoveItem, onUpdateItem}: CartSidebarProps) {
+export function CartSidebar({isOpen, onToggle, items, onRemoveItem, onUpdateItem, setIsCheckoutModalOpen}: CartSidebarProps) {
     let index=0;
 
     const total = items.reduce((total, item) => {
@@ -198,12 +198,17 @@ export function CartSidebar({isOpen, onToggle, items, onRemoveItem, onUpdateItem
                 <div className="p-4 border-t space-y-3">
                     <div className="flex justify-between items-center">
                     <span className="text-lg font-semibold">Total</span>
-                    <span className="text-2xl font-bold text-primary">
+                    <span className="text-2xl font-bold text-[#7C3BED]">
                         Rp. {grandTotal.toLocaleString()}
                     </span>
                     </div>
-                    <Button className="w-full" size="lg" disabled={items.length === 0}>
-                    Checkout
+                    <Button 
+                      className="w-full bg-[#7C3BED] hover:bg-[#8c52ef] hover:cursor-pointer" size="lg" disabled={items.length === 0}
+                      onClick={() => {
+                        setIsCheckoutModalOpen(true);
+                      }}
+                    >
+                      Checkout
                     </Button>
                 </div>
             </>

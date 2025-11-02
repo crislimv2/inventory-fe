@@ -20,6 +20,7 @@ const CheckoutProductModal : React.FC<CheckoutProductModalProps> = ({ isOpen, on
   const [qrisLoading, setQrisLoading] = useState<boolean>(true);
   const [qrisData, setQrisData] = useState<string>(QRIS_CODE);
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState<boolean>(false);
+  
 
   useEffect(() => {
     const total = cart.reduce((total, product) => {

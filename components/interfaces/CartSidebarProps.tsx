@@ -7,4 +7,5 @@ export interface CartSidebarProps {
     items: Product[];
     onRemoveItem: (productId:string, unitId: string) => void;
     onUpdateItem: (productId: string, unitId: string, updates: Partial<ProductUnit>) => void;
+    setIsCheckoutModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }

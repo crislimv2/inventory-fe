@@ -3,4 +3,5 @@ interface ProductCardProps {
   image: string;
   units: string[];
   onClick: () => void;
+  cartQuantity: number;
 }
