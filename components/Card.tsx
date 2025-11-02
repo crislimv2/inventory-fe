@@ -1,5 +1,5 @@
 'use client';
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { dummyData, Product } from "./interfaces/Product";
 import { CartSidebar } from "@/components/CartSidebar";
 import { Button } from "@/components/ui/button";
@@ -7,6 +7,7 @@ import { Menu } from "lucide-react";
 import { ProductCard } from "@/components/ProductCard";
 import SelectedProductModal from "./SelectedProductModal";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { ProductUnit } from "./interfaces/ProductUnit";
 
 const Card = () => {
   const [cart, setCart] = useState<Product[]>([]);
@@ -21,6 +22,24 @@ const Card = () => {
   const filteredProducts = dummyData.filter((product) =>
     product.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const removeFromCart = (id: string) => {
+    setCart((prev) => prev.filter((item) => item.id !== id));
+    // toast.info("Item removed from cart");
+  };
+
+  const updateCartItem = (productId:string, unitId: string, updates: Partial<ProductUnit>) => {
+    setCart((prev) =>
+      prev.map((item) =>
+        item.id === productId ? {
+          ...item,
+          units: item.units?.map((unit) =>
+            unit.id === unitId ? { ...unit, ...updates } : unit
+          )
+        } : item
+      )
+    );
+  };
 
   return (
     // <>
@@ -48,8 +67,8 @@ const Card = () => {
         isOpen={isSidebarOpen}
         onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
         items={cart}
-        // onRemoveItem={removeFromCart}
-        // onUpdateItem={updateCartItem}
+        onRemoveItem={removeFromCart}
+        onUpdateItem={updateCartItem}
       />
       <main className="flex-1 flex flex-col h-screen">
         <div className="p-4 lg:p-4 flex flex-col flex-1 min-h-0">

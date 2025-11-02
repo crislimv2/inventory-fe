@@ -1,9 +1,10 @@
 import { Product } from "./Product";
+import { ProductUnit } from "./ProductUnit";
 
 export interface CartSidebarProps {
     isOpen: boolean;
     onToggle: () => void;
     items: Product[];
-    // onRemoveItem: (productId: string) => void;
-    // onUpdateItem: (productId: string, updates: Partial<Product>) => void;
+    onRemoveItem: (unitId: string) => void;
+    onUpdateItem: (productId: string, unitId: string, updates: Partial<ProductUnit>) => void;
 }

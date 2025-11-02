@@ -74,6 +74,8 @@ const SelectedProductModal : React.FC<SelectedProductModalProps> = ({
             // Otherwise, add it as a new product
             return [...prevCart, productToAdd];
         });
+        
+        setSelectedProduct(product);
     };
 
     const handleUpdatePrice = (unitId: string, value: number | null) => {

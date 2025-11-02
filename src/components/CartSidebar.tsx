@@ -5,11 +5,19 @@ import { ScrollArea } from "./ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "./ui/input";
 
-export function CartSidebar({isOpen, onToggle, items}: CartSidebarProps) {
+export function CartSidebar({isOpen, onToggle, items, onRemoveItem, onUpdateItem}: CartSidebarProps) {
     let index=0;
     const total = items.map(item => 
         item.units?.reduce((unitSum, unit) => unitSum + ((unit.price || 0) * (unit.quantity || 0)), 0) || 0
     );
+
+    const handleQuantityChange = (itemId: string, unitId: string, value: number) => {
+      onUpdateItem(itemId, unitId, { quantity: value });
+    };
+    const handlePriceChange = (itemId: string, unitId: string, value: number) => {
+      onUpdateItem(itemId, unitId, { price: value });
+    };
+
     return (
     <>
       {/* Mobile Overlay */}
@@ -78,7 +86,7 @@ export function CartSidebar({isOpen, onToggle, items}: CartSidebarProps) {
                                                 variant="ghost"
                                                 size="icon"
                                                 className="h-6 w-6 text-destructive hover:text-destructive hover:bg-destructive/10 shrink-0"
-                                                // onClick={() => onRemoveItem(item.id)}
+                                                onClick={() => onRemoveItem(item.id)}
                                             >
                                                 <Trash2 className="h-3 w-3" />
                                             </Button>
@@ -88,12 +96,15 @@ export function CartSidebar({isOpen, onToggle, items}: CartSidebarProps) {
                                             <div>
                                                 <label className="text-xs text-muted-foreground mb-1 block">Qty</label>
                                                 <Input
-                                                type="number"
-                                                min="0"
-                                                max="9999"
-                                                value={unit.quantity}
-                                                //   onChange={(e) => handleQuantityChange(item.id, e.target.value)}
-                                                className="h-8 text-sm"
+                                                  type="number"
+                                                  max="9999"
+                                                  pattern="[0-9]*"
+                                                  value={unit.quantity}
+                                                  onChange={(e) => {
+                                                    console.log(e.target.value);
+                                                    handleQuantityChange(item.id, unit.id, Number(e.target.value))
+                                                  }}
+                                                  className="h-8 text-sm"
                                                 />
                                             </div>
                                             <div>
@@ -102,7 +113,7 @@ export function CartSidebar({isOpen, onToggle, items}: CartSidebarProps) {
                                                 type="number"
                                                 min="0"
                                                 value={unit.price}
-                                                //   onChange={(e) => handlePriceChange(item.id, e.target.value)}
+                                                  onChange={(e) => handlePriceChange(item.id, unit.id, Number(e.target.value))}
                                                 className="h-8 text-sm"
                                                 />
                                             </div>
