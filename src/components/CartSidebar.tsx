@@ -97,8 +97,8 @@ export function CartSidebar({isOpen, onToggle, items, onRemoveItem, onUpdateItem
           {/* Items */}
           {isOpen && (
             <>
-                <ScrollArea className="flex-1 p-4 min-h-0">
-                    <div className="space-y-3">
+                <ScrollArea className="flex-1 p-2 min-h-0">
+                    <div className="space-y-3 m-3">
                     {items.length === 0 ? (
                         <p className="text-center text-muted-foreground py-8">
                         Cart is empty
@@ -110,82 +110,82 @@ export function CartSidebar({isOpen, onToggle, items, onRemoveItem, onUpdateItem
                                 return (
                                     <div 
                                         key={unit.id}
-                                        className="p-3 bg-muted/50 rounded-lg hover:bg-muted transition-colors space-y-2"
+                                        className="bg-muted/50 rounded-xl hover:bg-gray-200 space-y-2 px-2 py-1 transition duration-200 ease-in-out hover:-translate-y-1 hover:scale-110"
                                     >
-                                        <div className="flex items-start gap-3">
-                                            <div className="flex items-center justify-center w-6 h-6 rounded-full bg-[#7C3BED] text-primary-foreground text-xs font-medium shrink-0">
-                                                {index}
-                                            </div>
-                                            <div className="flex-1 min-w-0">
-                                                <p className="font-medium text-sm truncate">{item.name}</p>
-                                                <p className="text-xs text-muted-foreground">({unit.unitName})</p>
-                                            </div>
-                                            <Button
-                                                variant="ghost"
-                                                size="icon"
-                                                className="h-6 w-6 text-destructive hover:text-destructive hover:bg-destructive/10 shrink-0"
-                                                onClick={() => onRemoveItem(item.id, unit.id)}
-                                            >
-                                                <Trash2 className="h-3 w-3" />
-                                            </Button>
-                                            </div>
+                                      <div className="flex items-start gap-3">
+                                          <div className="flex items-center justify-center w-6 h-6 rounded-full bg-[#7C3BED] text-primary-foreground text-xs font-medium shrink-0">
+                                              {index}
+                                          </div>
+                                          <div className="flex-1 min-w-0">
+                                              <p className="font-medium text-sm truncate">{item.name}</p>
+                                              <p className="text-sm text-muted-foreground">({unit.unitName})</p>
+                                          </div>
+                                          <Button
+                                              variant="ghost"
+                                              size="icon"
+                                              className="h-6 w-6 text-destructive hover:text-destructive hover:bg-destructive/10 shrink-0 hover:p-4 hover:cursor-pointer"
+                                              onClick={() => onRemoveItem(item.id, unit.id)}
+                                          >
+                                              <Trash2 className="h-3 w-3" />
+                                          </Button>
+                                      </div>
                                             
-                                            <div className="grid grid-cols-2 gap-2 pl-9">
-                                              <div>
-                                                  <label className="text-xs text-muted-foreground mb-1 block">Qty</label>
-                                                  <InputNumber<number>
-                                                    style={{ width: '70%' }}
-                                                    min={0}
-                                                    max={999}
-                                                    pattern="[0-9]*"
-                                                    value={unit.quantity}
-                                                    onChange={(e) => {
-                                                      handleQuantityChange(item.id, unit.id, Number(e))
-                                                    }}
-                                                    controls={false}
-                                                    size="middle"
-                                                  />
-                                              </div>
-                                              <div>
-                                                  <label className="text-xs text-muted-foreground mb-1 block">Price</label>
-                                                  <InputNumber<number>
-                                                    style={{ width: '100%' }}
-                                                    min={0}
-                                                    value={unit.price}
-                                                    onChange={(e) => handlePriceChange(item.id, unit.id, Number(e))}
-                                                    controls={false}
-                                                    size="middle"
-                                                    formatter={formatter}
-                                                    parser={parser}
-                                                  />
-                                              </div>
-                                            </div>
-                                            
-                                            <div className="pl-9">
-                                              <label className="text-xs text-muted-foreground mb-1 block">Total</label>
-                                              <InputNumber<number>
-                                                style={{ width: '100%', fontWeight: '600' }}
-                                                value={Math.round(unit.price * unit.quantity)}
-                                                controls={false}
-                                                onKeyDown={(e) => {
-                                                  if (e.key === "-" || e.key === "e" || e.key === "+") e.preventDefault();
-                                                }}
-                                                size="middle"
-                                                formatter={formatter}
-                                                parser={parser}
-                                                // onChange={(e) => {
-                                                //   handleTotalChange(item.id, unit.id, Number(e), unit.quantity || 0);
-                                                // }}
-                                                onBlur={(e) => {
-                                                  const rawValue = e.target.value ? parser(e.target.value) : 0;
-                                                  handleTotalChange(item.id, unit.id, rawValue, unit.quantity || 0);
-                                                }}
-                                                onPressEnter={(e) => {
-                                                  const rawValue = Number((e.target as HTMLInputElement).value.replace(/[Rp\s.]/g, "")) || 0;
-                                                  handleTotalChange(item.id, unit.id, rawValue, unit.quantity || 0);
-                                                }}
-                                              />
-                                            </div>
+                                      <div className="grid grid-cols-2 gap-2 pl-9">
+                                        <div>
+                                            <label className="text-xs text-muted-foreground mb-1 block">Qty</label>
+                                            <InputNumber<number>
+                                              style={{ width: '70%' }}
+                                              min={0}
+                                              max={999}
+                                              pattern="[0-9]*"
+                                              value={unit.quantity}
+                                              onChange={(e) => {
+                                                handleQuantityChange(item.id, unit.id, Number(e))
+                                              }}
+                                              controls={false}
+                                              size="middle"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="text-xs text-muted-foreground mb-1 block">Price</label>
+                                            <InputNumber<number>
+                                              style={{ width: '100%' }}
+                                              min={0}
+                                              value={unit.price}
+                                              onChange={(e) => handlePriceChange(item.id, unit.id, Number(e))}
+                                              controls={false}
+                                              size="middle"
+                                              formatter={formatter}
+                                              parser={parser}
+                                            />
+                                        </div>
+                                      </div>
+                                      
+                                      <div className="pl-9">
+                                        <label className="text-xs text-muted-foreground mb-1 block">Total</label>
+                                        <InputNumber<number>
+                                          style={{ width: '100%', fontWeight: '600' }}
+                                          value={Math.round(unit.price * unit.quantity)}
+                                          controls={false}
+                                          onKeyDown={(e) => {
+                                            if (e.key === "-" || e.key === "e" || e.key === "+") e.preventDefault();
+                                          }}
+                                          size="middle"
+                                          formatter={formatter}
+                                          parser={parser}
+                                          // onChange={(e) => {
+                                          //   handleTotalChange(item.id, unit.id, Number(e), unit.quantity || 0);
+                                          // }}
+                                          onBlur={(e) => {
+                                            const rawValue = e.target.value ? parser(e.target.value) : 0;
+                                            handleTotalChange(item.id, unit.id, rawValue, unit.quantity || 0);
+                                          }}
+                                          onPressEnter={(e) => {
+                                            const rawValue = Number((e.target as HTMLInputElement).value.replace(/[Rp\s.]/g, "")) || 0;
+                                            handleTotalChange(item.id, unit.id, rawValue, unit.quantity || 0);
+                                          }}
+                                        />
+                                      </div>
                                     </div>
                                 )
                             })
