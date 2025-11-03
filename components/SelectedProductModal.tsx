@@ -74,6 +74,8 @@ const SelectedProductModal : React.FC<SelectedProductModalProps> = ({
             // Otherwise, add it as a new product
             return [...prevCart, productToAdd];
         });
+        
+        setSelectedProduct(product);
     };
 
     const handleUpdatePrice = (unitId: string, value: number | null) => {
@@ -120,8 +122,8 @@ const SelectedProductModal : React.FC<SelectedProductModalProps> = ({
             {/* === Product header === */}
             <div className="flex gap-4">
                 <Image
-                    width={70}
-                    height={80}
+                    width={700}
+                    height={800}
                     src={"/1rcgKA.jpg"}
                     alt={selectedProduct.name}
                     className="w-40 h-40 object-cover rounded-md border"
