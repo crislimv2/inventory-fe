@@ -80,15 +80,15 @@ export function CartSidebar({isOpen, onToggle, items, onRemoveItem, onUpdateItem
             {isOpen ? (
               <>
                 <div className="flex items-center gap-2">
-                  <ShoppingCart className="h-5 w-5 text-primary" />
+                  <ShoppingCart className="h-6 w-6 text-primary" />
                   <h2 className="font-semibold">Cart</h2>
                 </div>
-                <Button variant="ghost" size="icon" onClick={onToggle}>
+                <Button variant="ghost" size="icon" onClick={onToggle} className="hover:bg-gray-300/60 hover:cursor-pointer">
                   <X className="h-4 w-4" />
                 </Button>
               </>
             ) : (
-              <Button variant="ghost" size="icon" onClick={onToggle} className="mx-auto">
+              <Button variant="ghost" size="icon" onClick={onToggle} className=" m hover:bg-gray-300/60 hover:cursor-pointer">
                 <ShoppingCart className="h-5 w-5" />
               </Button>
             )}
@@ -97,8 +97,8 @@ export function CartSidebar({isOpen, onToggle, items, onRemoveItem, onUpdateItem
           {/* Items */}
           {isOpen && (
             <>
-                <ScrollArea className="flex-1 p-2 min-h-0">
-                    <div className="space-y-3 m-3">
+                <ScrollArea className="flex-1 min-h-0">
+                    <div className="space-y-3 mx-2">
                     {items.length === 0 ? (
                         <p className="text-center text-muted-foreground py-8">
                         Cart is empty
