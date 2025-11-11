@@ -182,12 +182,25 @@ ${
                     </div>
                     <div className="flex flex-row justify-between items-center w-full">
                         <span className="text-black text-lg font-semibold">Bayar:</span>
-                        <span className="text-lg font-semibold">Rp. {Number(cashReceived).toLocaleString('id-ID')}</span>
+                        {paymentMethod === 'Cash' ? (
+                            <span className="text-lg font-semibold">Rp. {Number(cashReceived).toLocaleString('id-ID')}</span>
+                        ) : (
+                            <span className="text-lg font-semibold">Rp. {Number(totalAmount).toLocaleString('id-ID')}</span>
+                        )}
                     </div>
-                    <div  className="flex flex-row justify-between items-center w-full">
-                        <span className="text-black text-lg font-semibold">{label}:</span>
-                        <span className="text-lg font-semibold">Rp. {Number(cashReceived - totalAmount).toLocaleString('id-ID')}</span>
-                    </div>
+                    {paymentMethod === 'Cash' && (
+                        label === 'Kembali' ? (
+                            <div className="flex flex-row justify-between items-center w-full">
+                                <span className="text-black text-lg font-semibold">Kembali:</span>
+                                <span className="text-lg font-semibold">Rp. {Number(cashReceived - totalAmount).toLocaleString('id-ID')}</span>
+                            </div>
+                        ) : (
+                            <div className="flex flex-row justify-between items-center w-full">
+                                <span className="text-black text-lg font-semibold">Credit:</span>
+                                <span className="text-lg font-semibold">Rp. {Number(cashReceived - totalAmount).toLocaleString('id-ID')}</span>
+                            </div>
+                        )
+                    )}
                 </div>
 
             </div>
