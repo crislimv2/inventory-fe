@@ -24,18 +24,18 @@ const SuccessPaymentModal: React.FC<SuccessPaymentModalProps> = ({ isOpen, produ
             <title>Receipt</title>
             <style>
                 @media print {
-                @page { margin: 0; size: 80mm auto; }
-                body { width: 80mm; margin: 0 auto; }
+                    @page { margin: 0; size: 80mm auto; }
+                    body {
+                        width: 80mm; /* Slightly smaller than full paper width */
+                        margin: 0;
+                        padding-right: 10mm; /* adjust this to fine-tune */
+                        font-family: 'Courier New', monospace;
+                        font-size: 12px;
+                        line-height: 1.2;
+                    }
                 }
 
                 * { margin: 0; padding: 0; box-sizing: border-box; }
-                body {
-                    font-family: 'Courier New', monospace;
-                    width: 80mm;
-                    padding: 10px;
-                    font-size: 12px;
-                    line-height: 1.4;
-                }
 
                 .center { text-align: center; }
                 .bold { font-weight: bold; }
