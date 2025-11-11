@@ -9,6 +9,7 @@ import Image from "next/image";
 import handleQRIS from "@/utils/handleQRIS";
 import SuccessPaymentModal from "./SuccessPaymentModal";
 import QRCodeButton from "qrcode";
+import { set } from "zod";
 
 
 const CheckoutProductModal : React.FC<CheckoutProductModalProps> = ({ isOpen, onClose, cart, setCart, setIsCheckoutModalOpen }) => {
@@ -114,7 +115,11 @@ const CheckoutProductModal : React.FC<CheckoutProductModalProps> = ({ isOpen, on
         <Modal
           width={1350}
           open={isOpen}
-          onCancel={onClose}
+          onCancel={() => {
+            onClose();
+            setSelectedAmount(null);
+            setCashReceived(0);
+          }}
           maskClosable={false}
           footer={null}
           className={isSuccessModalOpen ? "blur-sm" : ""}

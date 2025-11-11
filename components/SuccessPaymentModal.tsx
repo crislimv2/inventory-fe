@@ -5,7 +5,8 @@ import success from '../src/animations/Success.json';
 import Lottie from 'lottie-react';
 
 const SuccessPaymentModal: React.FC<SuccessPaymentModalProps> = ({ isOpen, products, onClose, totalAmount, setIsCheckoutModalOpen, setCart, paymentMethod, cashReceived, setCashReceived }) => {
-    const label = cashReceived <= totalAmount ? 'Credit' : 'Kembali';
+    const label = cashReceived < totalAmount ? 'Credit' : 'Kembali';
+    console.log(cashReceived, totalAmount, label);
     const totalQuantity = products.reduce((sum, product) => {
         const productTotal = product.units?.reduce((unitSum, unit) => unitSum + (unit.quantity || 0), 0) || 0;
         return sum + productTotal;
@@ -18,104 +19,118 @@ const SuccessPaymentModal: React.FC<SuccessPaymentModalProps> = ({ isOpen, produ
         if (!printWindow) return;
 
         const receiptHTML = `
-            <!DOCTYPE html>
-            <html>
-            <head>
-            <title>Receipt</title>
-            <style>
-                @media print {
-                    @page { margin: 0; size: 80mm auto; }
-                    body {
-                        width: 80mm; /* Slightly smaller than full paper width */
-                        margin: 0;
-                        padding-right: 10mm; /* adjust this to fine-tune */
-                        font-family: 'Courier New', monospace;
-                        font-size: 12px;
-                        line-height: 1.2;
-                    }
-                }
+<!DOCTYPE html>
+<html>
+<head>
+<title>Receipt</title>
+<style>
+    @media print {
+        @page { margin: 0; size: 80mm auto; }
+        body {
+            width: 80mm;
+            margin: 0;
+            padding-right: 10mm;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            line-height: 1.2;
+        }
+    }
 
-                * { margin: 0; padding: 0; box-sizing: border-box; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
 
-                .center { text-align: center; }
-                .bold { font-weight: bold; }
-                .large { font-size: 16px; }
-                .divider { border-top: 1px dashed #000; margin: 8px 0; }
-                .row { display: flex; justify-content: space-between; margin: 4px 0; page-break-inside: avoid; }
-                .item-row { margin: 6px 0; page-break-inside: avoid; }
-                .item-name {
-                    margin-left: 4px; /* adjust as needed */
-                }
-                .total-section { margin-top: 12px; padding-top: 8px; border-top: 2px solid #000; }
-                .date-time-row {
-                    font-size: 11px;
-                    margin-top: 4px;
-                    margin-bottom: 4px;
-                }
-                .row span:last-child {
-                    text-align: right;
-                    flex: 1;
-                }
-            </style>
-            </head>
-            <body>
-            <!-- Optional Store Header -->
-            <div class="center bold large">Toko Ci  Ali</div>
-            <!-- <div class="">Jelambar</div> -->
-            <div class="row date-time-row">
-                <span>${new Intl.DateTimeFormat('id-ID', {
-                    weekday: 'long',
-                    day: 'numeric',
-                    month: 'numeric',
-                    year: 'numeric'
-                    }).format(new Date())}
-                </span>
-                <span>${new Date().toLocaleTimeString('id-ID').replaceAll('.', ':')}</span>
-            </div>
-            <div class="divider"></div>
+    .center { text-align: center; }
+    .bold { font-weight: bold; }
+    .large { font-size: 16px; }
+    .divider { border-top: 1px dashed #000; margin: 8px 0; }
+    .row { display: flex; justify-content: space-between; margin: 4px 0; page-break-inside: avoid; }
+    .item-row { margin: 6px 0; page-break-inside: avoid; }
+    .item-name { margin-left: 4px; }
+    .total-section { margin-top: 12px; padding-top: 8px; border-top: 2px solid #000; }
+    .date-time-row { font-size: 11px; margin-top: 4px; margin-bottom: 4px; }
+    .row span:last-child { text-align: right; flex: 1; }
+    pre {
+        font-family: 'Courier New', monospace;
+        font-size: 12px;
+        line-height: 1.2;
+        margin: 0;
+        text-align: center;
+    }
+</style>
+</head>
+<body>
+<div class="center bold large">Toko Ci Ali</div>
+<div class="row date-time-row">
+    <span>${new Intl.DateTimeFormat('id-ID', {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'numeric',
+        year: 'numeric'
+    }).format(new Date())}</span>
+    <span>${new Date().toLocaleTimeString('id-ID').replaceAll('.', ':')}</span>
+</div>
+<div>Jenis Pembayaran: ${paymentMethod?.toUpperCase()}</div>
+<div class="divider"></div>
 
-            ${products.map((item) => {
-                return item.units?.map((unit) => {
-                return `
-                    <div class="item-row">
-                    <div class="">${item.name} (${unit.unitName})</div>
-                    <div class="row">
-                        <span class="item-name">${unit.quantity} x Rp. ${Number(unit.price).toLocaleString('id-ID')}</span>
-                        <span class="bold">Rp. ${(unit.price * unit.quantity).toLocaleString('id-ID')}</span>
-                    </div>
-                    </div>
-                `;
-                }).join('');
-            }).join('')}
-
-            <div class="divider"></div>
-            <div>QTY: ${totalQuantity}</div>
-            <div class="row bold large total-section">
-                <span>TOTAL</span>
-                <span>Rp. ${Number(totalAmount).toLocaleString('id-ID')}</span>
-            </div>
-
-            ${
-                paymentMethod === 'Cash'
-                ? `
-                <div class="row">
-                <span>Bayar</span>
-                <span>Rp. ${cashReceived.toLocaleString('id-ID')}</span>
-                </div>
-                <div class="row">
-                <span>${label}</span>
-                <span>Rp. ${Number(cashReceived - totalAmount).toLocaleString('id-ID')}</span>
-                </div>
-            `
-                : ''
-            }
-
-            <div class="divider"></div>
-            <div class="center">Payment: ${paymentMethod?.toUpperCase()}</div>
-            <div class="center" style="margin-top: 12px;">Thank you!</div>
-            </body>
-            </html>
+${products.map((item) => {
+    return item.units?.map((unit) => {
+        return `
+<div class="item-row">
+<div>${item.name} (${unit.unitName})</div>
+<div class="row">
+<span class="item-name">${unit.quantity} x Rp. ${Number(unit.price).toLocaleString('id-ID')}</span>
+<span class="bold">Rp. ${(unit.price * unit.quantity).toLocaleString('id-ID')}</span>
+</div>
+</div>
         `;
+    }).join('');
+}).join('')}
+
+<div class="divider"></div>
+<div>QTY: ${totalQuantity}</div>
+<div class="row bold large total-section">
+    <span>TOTAL</span>
+    <span>Rp. ${Number(totalAmount).toLocaleString('id-ID')}</span>
+</div>
+
+${
+    paymentMethod === 'Cash'
+    ? `
+<div class="row">
+<span>Bayar</span>
+<span>Rp. ${cashReceived.toLocaleString('id-ID')}</span>
+</div>
+<div class="row">
+<span>${label}</span>
+<span>Rp. ${Number(cashReceived - totalAmount).toLocaleString('id-ID')}</span>
+</div>
+    `
+    : ''
+}
+
+${
+    label === 'Credit'
+    ? `
+<pre>
+-------------------------------------
+|    Penjual    |       Pembeli     |
+|               |                   |
+|               |                   |
+|               |                   |
+|               |                   |
+|               |                   |
+|(             )|(                 )|
+-------------------------------------
+</pre>
+    `
+    : ''
+}
+
+
+<div class="center" style="margin-top: 12px;">Thank you!</div>
+</body>
+</html>
+`;
+
 
         // ✅ Completely avoid document.write()
         const doc = printWindow.document;
