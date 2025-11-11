@@ -4,7 +4,7 @@ import { SuccessPaymentModalProps } from "./interfaces/SuccessPaymentModalProps"
 import success from '../src/animations/Success.json';
 import Lottie from 'lottie-react';
 
-const SuccessPaymentModal: React.FC<SuccessPaymentModalProps> = ({ isOpen, products, onClose, totalAmount, setIsCheckoutModalOpen, setCart, paymentMethod, cashReceived }) => {
+const SuccessPaymentModal: React.FC<SuccessPaymentModalProps> = ({ isOpen, products, onClose, totalAmount, setIsCheckoutModalOpen, setCart, paymentMethod, cashReceived, setCashReceived }) => {
     const label = cashReceived <= totalAmount ? 'Credit' : 'Kembali';
     const totalQuantity = products.reduce((sum, product) => {
         const productTotal = product.units?.reduce((unitSum, unit) => unitSum + (unit.quantity || 0), 0) || 0;
@@ -141,7 +141,10 @@ const SuccessPaymentModal: React.FC<SuccessPaymentModalProps> = ({ isOpen, produ
     return (
         <Modal 
             open={isOpen} 
-            onCancel={onClose}
+            onCancel={() => {
+                onClose();
+                setCashReceived(0);
+            }}
             maskClosable={false}
             footer={null}
             centered
@@ -191,6 +194,7 @@ const SuccessPaymentModal: React.FC<SuccessPaymentModalProps> = ({ isOpen, produ
                             setCart([]);
                             setIsCheckoutModalOpen(false);
                             onClose();
+                            setCashReceived(0);
                         }}
                     >
                         Selesai

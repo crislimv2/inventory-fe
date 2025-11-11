@@ -382,6 +382,7 @@ const CheckoutProductModal : React.FC<CheckoutProductModalProps> = ({ isOpen, on
             onClose();
             setIsSuccessModalOpen(false);
           }} 
+          setCashReceived={setCashReceived}
           products={cart} 
           setCart={setCart}
           totalAmount={totalAmount} 

@@ -9,4 +9,5 @@ export interface SuccessPaymentModalProps {
     setIsCheckoutModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
     setCart: React.Dispatch<React.SetStateAction<Product[]>>;
     cashReceived: number;
+    setCashReceived: React.Dispatch<React.SetStateAction<number>>;
 }
