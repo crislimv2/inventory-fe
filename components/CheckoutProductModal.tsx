@@ -63,6 +63,17 @@ const CheckoutProductModal: React.FC<CheckoutProductModalProps> = ({
   const [qrisLoading, setQrisLoading] = useState<boolean>(true);
   const [qrisData, setQrisData] = useState<string>(QRIS_CODE);
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState<boolean>(false);
+  const [prevIsOpen, setPrevIsOpen] = useState<boolean>(isOpen);
+
+  if (isOpen && !prevIsOpen) {
+    setPrevIsOpen(true);
+    setPaymentMethod("Cash");
+    setCashReceived(0);
+    setSelectedAmount(null);
+    setQrisLoading(true);
+  } else if (!isOpen && prevIsOpen) {
+    setPrevIsOpen(false);
+  }
 
   const totalAmount = useMemo(
     () =>

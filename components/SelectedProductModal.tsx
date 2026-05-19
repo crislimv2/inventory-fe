@@ -8,20 +8,29 @@ import Image from "next/image";
 import { formatRp } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
+const buildDraft = (product: Product | null): Product | null =>
+  product
+    ? {
+        ...product,
+        units: product.units?.map((u) => ({ ...u, quantity: 0 })) ?? [],
+      }
+    : null;
+
 const SelectedProductModal: React.FC<SelectedProductModalProps> = ({
   isOpen,
   product,
   onClose,
   setCart,
 }) => {
-  const [draft, setDraft] = useState<Product | null>(() =>
-    product
-      ? {
-          ...product,
-          units: product.units?.map((u) => ({ ...u, quantity: 0 })) ?? [],
-        }
-      : null,
+  const [draft, setDraft] = useState<Product | null>(() => buildDraft(product));
+  const [prevProductId, setPrevProductId] = useState<string | null>(
+    product?.id ?? null,
   );
+
+  if (product?.id !== prevProductId) {
+    setPrevProductId(product?.id ?? null);
+    setDraft(buildDraft(product));
+  }
 
   const totalPrice = useMemo(
     () =>
