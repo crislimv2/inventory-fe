@@ -1,220 +1,229 @@
-import { ShoppingCart, Trash2, X } from "lucide-react";
+"use client";
+import {
+  ShoppingBag,
+  Trash2,
+  Plus,
+  Minus,
+  PauseCircle,
+  Layers,
+  Receipt,
+  Eraser,
+} from "lucide-react";
 import { CartSidebarProps } from "../../components/interfaces/CartSidebarProps";
 import { Button } from "./ui/button";
 import { ScrollArea } from "./ui/scroll-area";
-import { InputNumber, InputNumberProps } from "antd";
-import { toast } from "sonner"
-export function CartSidebar({isOpen, onToggle, items, onRemoveItem, onUpdateItem, setIsCheckoutModalOpen}: CartSidebarProps) {
-    let index=0;
+import { cn } from "@/lib/utils";
+import { formatRp } from "@/lib/format";
+import { computeCartTotals } from "@/lib/cart";
+import { toast } from "sonner";
 
-    const total = items.reduce((total, item) => {
-      const itemTotal = item.units?.reduce(
-        (sum, unit) => sum + ((unit.price || 0) * (unit.quantity || 0)),
-        0
-      ) || 0;
-      return total + itemTotal;
-    }, 0);
+export function CartSidebar({
+  items,
+  onRemoveItem,
+  onUpdateItem,
+  onClearCart,
+  onHoldCart,
+  onOpenHolds,
+  setIsCheckoutModalOpen,
+  heldCount,
+}: CartSidebarProps) {
+  const { subtotal, itemCount, lineCount } = computeCartTotals(items);
+  const isEmpty = items.length === 0;
 
-    const grandTotal = Math.round(total);
-
-
-    const handleQuantityChange = (itemId: string, unitId: string, value: number) => {
-      onUpdateItem(itemId, unitId, { quantity: value });
-    };
-    const handlePriceChange = (itemId: string, unitId: string, value: number) => {
-      onUpdateItem(itemId, unitId, { price: value });
-    };
-
-    const handleTotalChange = (
-      itemId: string, 
-      unitId: string, 
-      currentTotal: number, 
-      unitQty: number
-    ) => {
-      const newTotal = Number(currentTotal) || 0;
-      if (unitQty <= 0) return;
-
-      // Multiply, round, divide to avoid floating-point loss
-      const preciseDivision = newTotal / unitQty;
-      const newPrice = Math.round((preciseDivision + Number.EPSILON) * 100) / 100;
-
-      onUpdateItem(itemId, unitId, { price: newPrice });
+  const handleStep = (
+    productId: string,
+    unitId: string,
+    currentQty: number,
+    delta: number,
+  ) => {
+    const next = Math.max(0, currentQty + delta);
+    if (next === 0) {
+      onRemoveItem(productId, unitId);
+      return;
     }
+    onUpdateItem(productId, unitId, { quantity: next });
+  };
 
-    const formatter: InputNumberProps<number>["formatter"] = (value) => {
-      if (!value && value !== 0) return "";
-      const parts = value.toString().split(".");
-      const integerPart = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-      const decimalPart = parts[1] ? `.${parts[1]}` : "";
-      return `Rp ${integerPart}${decimalPart}`;
-    };
-    
-    // --- Parser: Convert from "Rp 20.000.000" -> 20000000 ---
-    const parser: InputNumberProps<number>["parser"] = (value) => {
-      if (!value) return 0;
-      const numeric = value.replace(/[Rp\s.]/g, ""); // remove Rp, spaces, and dots
-      return Number(numeric);
-    };
+  const handleHold = () => {
+    if (isEmpty) {
+      toast.error("Keranjang masih kosong");
+      return;
+    }
+    onHoldCart();
+    toast.success("Transaksi ditahan");
+  };
 
-    return (
-    <>
-      {/* Mobile Overlay */}
-      {isOpen && (
-        <div 
-          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
-          onClick={onToggle}
-        ></div>
-      )}
-
-      {/* Sidebar */}
-      <aside
-        className={`
-            fixed lg:relative top-0 left-0 h-full bg-card border-r z-50
-            transition-all duration-300 ease-in-out 
-            ${isOpen ? 'translate-x-0 w-80' : '-translate-x-full lg:translate-x-0 lg:w-16'}
-        `}
-      >
-        <div className="h-full flex flex-col">
-          {/* Header */}
-          <div className="p-4 border-b flex items-center justify-between">
-            {isOpen ? (
-              <>
-                <div className="flex items-center gap-2">
-                  <ShoppingCart className="h-5 w-5 text-primary" />
-                  <h2 className="font-semibold">Cart</h2>
-                </div>
-                <Button variant="ghost" size="icon" onClick={onToggle}>
-                  <X className="h-4 w-4" />
-                </Button>
-              </>
-            ) : (
-              <Button variant="ghost" size="icon" onClick={onToggle} className="mx-auto">
-                <ShoppingCart className="h-5 w-5" />
-              </Button>
-            )}
+  return (
+    <aside className="flex flex-col h-full w-[380px] shrink-0 border-r border-border bg-sidebar">
+      {/* Header */}
+      <div className="flex items-center justify-between px-5 py-4 border-b border-border">
+        <div className="flex items-center gap-2.5">
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-foreground/5">
+            <ShoppingBag className="h-4.5 w-4.5 text-foreground" />
           </div>
-
-          {/* Items */}
-          {isOpen && (
-            <>
-                <ScrollArea className="flex-1 p-2 min-h-0">
-                    <div className="space-y-3 m-3">
-                    {items.length === 0 ? (
-                        <p className="text-center text-muted-foreground py-8">
-                        Cart is empty
-                        </p>
-                    ) : (
-                        items.map((item) => {
-                            return item.units?.map((unit) => {
-                                index++;
-                                return (
-                                    <div 
-                                        key={unit.id}
-                                        className="bg-muted/50 rounded-xl hover:bg-gray-200/90 space-y-2 px-2 py-1 transition duration-200 ease-in-out hover:-translate-y-1 hover:scale-100"
-                                    >
-                                      <div className="flex items-start gap-3">
-                                          <div className="flex items-center justify-center w-6 h-6 rounded-full bg-[#7C3BED] text-primary-foreground text-xs font-medium shrink-0">
-                                              {index}
-                                          </div>
-                                          <div className="flex-1 min-w-0">
-                                              <p className="font-medium text-sm truncate">{item.name}</p>
-                                              <p className="text-sm text-muted-foreground">({unit.unitName})</p>
-                                          </div>
-                                          <Button
-                                              variant="ghost"
-                                              size="icon"
-                                              className="h-6 w-6 text-destructive hover:text-destructive hover:bg-destructive/10 shrink-0 hover:p-4 hover:cursor-pointer"
-                                              onClick={() => onRemoveItem(item.id, unit.id)}
-                                          >
-                                              <Trash2 className="h-3 w-3" />
-                                          </Button>
-                                      </div>
-                                            
-                                      <div className="grid grid-cols-2 gap-2 pl-9">
-                                        <div>
-                                            <label className="text-xs text-muted-foreground mb-1 block">Qty</label>
-                                            <InputNumber<number>
-                                              style={{ width: '70%' }}
-                                              min={0}
-                                              max={999}
-                                              pattern="[0-9]*"
-                                              value={unit.quantity}
-                                              onChange={(e) => {
-                                                handleQuantityChange(item.id, unit.id, Number(e))
-                                              }}
-                                              controls={false}
-                                              size="middle"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="text-xs text-muted-foreground mb-1 block">Price</label>
-                                            <InputNumber<number>
-                                              style={{ width: '100%' }}
-                                              min={0}
-                                              value={unit.price}
-                                              onChange={(e) => handlePriceChange(item.id, unit.id, Number(e))}
-                                              controls={false}
-                                              size="middle"
-                                              formatter={formatter}
-                                              parser={parser}
-                                            />
-                                        </div>
-                                      </div>
-                                      
-                                      <div className="pl-9">
-                                        <label className="text-xs text-muted-foreground mb-1 block">Total</label>
-                                        <InputNumber<number>
-                                          style={{ width: '100%', fontWeight: '600' }}
-                                          value={Math.round(unit.price * unit.quantity)}
-                                          controls={false}
-                                          onKeyDown={(e) => {
-                                            if (e.key === "-" || e.key === "e" || e.key === "+") e.preventDefault();
-                                          }}
-                                          size="middle"
-                                          formatter={formatter}
-                                          parser={parser}
-                                          // onChange={(e) => {
-                                          //   handleTotalChange(item.id, unit.id, Number(e), unit.quantity || 0);
-                                          // }}
-                                          onBlur={(e) => {
-                                            const rawValue = e.target.value ? parser(e.target.value) : 0;
-                                            handleTotalChange(item.id, unit.id, rawValue, unit.quantity || 0);
-                                          }}
-                                          onPressEnter={(e) => {
-                                            const rawValue = Number((e.target as HTMLInputElement).value.replace(/[Rp\s.]/g, "")) || 0;
-                                            handleTotalChange(item.id, unit.id, rawValue, unit.quantity || 0);
-                                          }}
-                                        />
-                                      </div>
-                                    </div>
-                                )
-                            })
-                        })
-                    )}
-                    </div>
-                </ScrollArea>
-
-                {/* Total */}
-                <div className="p-4 border-t space-y-3">
-                    <div className="flex justify-between items-center">
-                    <span className="text-lg font-semibold">Total</span>
-                    <span className="text-2xl font-bold text-[#7C3BED]">
-                        Rp. {grandTotal.toLocaleString()}
-                    </span>
-                    </div>
-                    <Button 
-                      className="w-full bg-[#7C3BED] hover:bg-[#8c52ef] hover:cursor-pointer" size="lg" disabled={items.length === 0}
-                      onClick={() => {
-                        setIsCheckoutModalOpen(true);
-                      }}
-                    >
-                      Checkout
-                    </Button>
-                </div>
-            </>
+          <div>
+            <h2 className="text-sm font-semibold tracking-tight">Keranjang</h2>
+            <p className="text-xs text-muted-foreground tnum">
+              {lineCount} item · {itemCount} qty
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-1">
+          <button
+            type="button"
+            onClick={onOpenHolds}
+            className={cn(
+              "relative h-9 px-3 rounded-lg text-xs font-medium border border-border bg-card press-down",
+              "hover:bg-accent transition-colors",
+              heldCount > 0 && "border-foreground/20",
+            )}
+            aria-label="Lihat transaksi ditahan"
+          >
+            <div className="flex items-center gap-1.5">
+              <Layers className="h-3.5 w-3.5" />
+              <span className="tnum">{heldCount}</span>
+            </div>
+          </button>
+          {!isEmpty && (
+            <button
+              type="button"
+              onClick={() => {
+                onClearCart();
+                toast.info("Keranjang dikosongkan");
+              }}
+              className="h-9 w-9 inline-flex items-center justify-center rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive-soft transition-colors"
+              aria-label="Kosongkan keranjang"
+            >
+              <Eraser className="h-4 w-4" />
+            </button>
           )}
         </div>
-      </aside>
-    </>
+      </div>
+
+      {/* Items */}
+      {isEmpty ? (
+        <div className="flex-1 flex flex-col items-center justify-center text-center px-8 py-12">
+          <div className="h-14 w-14 rounded-2xl bg-muted flex items-center justify-center mb-3">
+            <ShoppingBag className="h-6 w-6 text-muted-foreground" />
+          </div>
+          <p className="text-sm font-medium text-foreground">Keranjang kosong</p>
+          <p className="text-xs text-muted-foreground mt-1 max-w-[220px]">
+            Pilih produk dari katalog di kanan atau scan barcode untuk mulai transaksi.
+          </p>
+        </div>
+      ) : (
+        <ScrollArea className="flex-1 min-h-0">
+          <ul className="px-3 py-3 space-y-1.5">
+            {items.flatMap((item, productIdx) =>
+              (item.units ?? []).map((unit, unitIdx) => {
+                const lineTotal = (unit.price || 0) * (unit.quantity || 0);
+                const number = productIdx + unitIdx + 1;
+                return (
+                  <li
+                    key={`${item.id}-${unit.id}`}
+                    className="group rounded-xl border border-transparent hover:border-border hover:bg-accent/40 px-2.5 py-2 transition-colors"
+                  >
+                    <div className="flex items-start gap-2.5">
+                      <span className="mt-0.5 inline-flex h-5 min-w-5 items-center justify-center rounded-md bg-foreground/5 text-[10px] font-semibold text-foreground tnum px-1">
+                        {number}
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium leading-tight truncate">
+                          {item.name}
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          {unit.unitName} · {formatRp(unit.price)}
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => onRemoveItem(item.id, unit.id)}
+                        className="opacity-0 group-hover:opacity-100 transition-opacity h-7 w-7 inline-flex items-center justify-center rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive-soft"
+                        aria-label="Hapus item"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+
+                    <div className="mt-2 flex items-center justify-between pl-7">
+                      <div className="inline-flex items-center rounded-lg border border-border bg-card">
+                        <button
+                          type="button"
+                          onClick={() =>
+                            handleStep(item.id, unit.id, unit.quantity || 0, -1)
+                          }
+                          className="h-7 w-7 inline-flex items-center justify-center rounded-l-lg hover:bg-accent transition-colors"
+                          aria-label="Kurangi"
+                        >
+                          <Minus className="h-3 w-3" />
+                        </button>
+                        <span className="w-9 text-center text-sm font-semibold tnum">
+                          {unit.quantity}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            handleStep(item.id, unit.id, unit.quantity || 0, 1)
+                          }
+                          className="h-7 w-7 inline-flex items-center justify-center rounded-r-lg hover:bg-accent transition-colors"
+                          aria-label="Tambah"
+                        >
+                          <Plus className="h-3 w-3" />
+                        </button>
+                      </div>
+                      <span className="text-sm font-semibold tnum text-foreground">
+                        {formatRp(lineTotal)}
+                      </span>
+                    </div>
+                  </li>
+                );
+              }),
+            )}
+          </ul>
+        </ScrollArea>
+      )}
+
+      {/* Footer */}
+      <div className="border-t border-border bg-card/40 backdrop-blur px-5 py-4 space-y-3">
+        <div className="space-y-1">
+          <div className="flex justify-between items-baseline text-sm">
+            <span className="text-muted-foreground">Subtotal</span>
+            <span className="font-medium tnum">{formatRp(subtotal)}</span>
+          </div>
+          <div className="flex justify-between items-baseline">
+            <span className="text-base font-semibold">Total</span>
+            <span className="text-2xl font-semibold tnum tracking-tight">
+              {formatRp(subtotal)}
+            </span>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-3 gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            className="col-span-1 h-11 rounded-xl press-down"
+            disabled={isEmpty}
+            onClick={handleHold}
+          >
+            <PauseCircle className="h-4 w-4" />
+            <span className="text-xs font-medium">Hold</span>
+          </Button>
+          <Button
+            type="button"
+            className={cn(
+              "col-span-2 h-11 rounded-xl press-down font-semibold",
+              "bg-foreground text-background hover:bg-foreground/90",
+              "disabled:opacity-40",
+            )}
+            disabled={isEmpty || subtotal <= 0}
+            onClick={() => setIsCheckoutModalOpen(true)}
+          >
+            <Receipt className="h-4 w-4" />
+            <span>Bayar · {formatRp(subtotal)}</span>
+          </Button>
+        </div>
+      </div>
+    </aside>
   );
 }

@@ -4,4 +4,7 @@ interface ProductCardProps {
   units: string[];
   onClick: () => void;
   cartQuantity: number;
+  priceFrom?: number;
+  category?: string;
+  unavailable?: boolean;
 }

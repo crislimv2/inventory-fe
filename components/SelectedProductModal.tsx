@@ -1,240 +1,272 @@
-import { Button, InputNumber, Modal } from "antd";
+"use client";
+import { InputNumber, Modal } from "antd";
 import { SelectedProductModalProps } from "./interfaces/SelectedProductModalProps";
-import { Minus, Plus, ShoppingCart } from "lucide-react";
+import { Minus, Plus, ShoppingCart, X } from "lucide-react";
 import { Product } from "./interfaces/Product";
-import { useEffect, useState } from "react";
+import { useMemo, useState } from "react";
 import Image from "next/image";
+import { formatRp } from "@/lib/format";
+import { cn } from "@/lib/utils";
 
-const SelectedProductModal : React.FC<SelectedProductModalProps> = ({
-    isOpen,
-    product,
-    onClose,
-    setCart
+const SelectedProductModal: React.FC<SelectedProductModalProps> = ({
+  isOpen,
+  product,
+  onClose,
+  setCart,
 }) => {
-    const [selectedProduct, setSelectedProduct] = useState<Product | null>(product);
-    const [totalPrice, setTotalPrice] = useState<number>(0);
+  const [draft, setDraft] = useState<Product | null>(() =>
+    product
+      ? {
+          ...product,
+          units: product.units?.map((u) => ({ ...u, quantity: 0 })) ?? [],
+        }
+      : null,
+  );
 
-    useEffect(() => {
-        setSelectedProduct(product);
-    }, [product]);
+  const totalPrice = useMemo(
+    () =>
+      draft?.units?.reduce(
+        (sum, u) => sum + (u.price || 0) * (u.quantity || 0),
+        0,
+      ) ?? 0,
+    [draft],
+  );
 
-    useEffect(() => {
-        const newTotal = selectedProduct?.units?.reduce(
-            (sum, unit) => sum + unit.price * unit.quantity,
-            0
-        ) ?? 0;
-        setTotalPrice(newTotal);
-    }, [selectedProduct]);
+  const totalQty = useMemo(
+    () => draft?.units?.reduce((sum, u) => sum + (u.quantity || 0), 0) ?? 0,
+    [draft],
+  );
 
-    
-    const handleAddToCart = () => {
-        // Filter only units with quantity > 0
-        if(!selectedProduct) return;
-        const selectedUnits = selectedProduct?.units?.filter(unit => unit.quantity > 0) || [];
+  const setQty = (unitId: string, delta: number) => {
+    setDraft((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        units: prev.units?.map((u) =>
+          u.id === unitId
+            ? { ...u, quantity: Math.max(0, (u.quantity || 0) + delta) }
+            : u,
+        ),
+      };
+    });
+  };
 
-        const productToAdd: Product = {
-            ...selectedProduct,
-            units: selectedUnits
-        };
+  const setPrice = (unitId: string, value: number | null) => {
+    setDraft((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        units: prev.units?.map((u) =>
+          u.id === unitId ? { ...u, price: value ?? 0 } : u,
+        ),
+      };
+    });
+  };
 
-        // Update the cart in parent
-        setCart(prevCart => {
+  const handleAddToCart = () => {
+    if (!draft || totalQty === 0) return;
+    const selectedUnits = draft.units?.filter((u) => u.quantity > 0) ?? [];
+    const productToAdd: Product = { ...draft, units: selectedUnits };
 
-            const existingProductIndex = prevCart.findIndex(p => p.id === productToAdd.id);
+    setCart((prev) => {
+      const idx = prev.findIndex((p) => p.id === productToAdd.id);
+      if (idx === -1) return [...prev, productToAdd];
 
-            if (existingProductIndex !== -1) {
-                // If the product already exists, merge the unit quantities
-                const updatedCart = [...prevCart];
-                const existingProduct = updatedCart[existingProductIndex];
+      const updated = [...prev];
+      const existing = updated[idx];
+      const mergedUnits =
+        existing.units?.map((u) => {
+          const incoming = productToAdd.units?.find((x) => x.id === u.id);
+          return incoming
+            ? { ...u, quantity: (u.quantity || 0) + incoming.quantity }
+            : u;
+        }) ?? [];
+      const newUnits =
+        productToAdd.units?.filter(
+          (n) => !mergedUnits.some((m) => m.id === n.id),
+        ) ?? [];
+      updated[idx] = {
+        ...existing,
+        units: [...mergedUnits, ...newUnits],
+      };
+      return updated;
+    });
+    onClose();
+  };
 
-                const mergedUnits = existingProduct.units?.map(unit => {
-                    const newUnit = productToAdd.units?.find(u => u.id === unit.id);
-                    if (newUnit) {
-                    return {
-                        ...unit,
-                        quantity: unit.quantity + newUnit.quantity, // merge quantity
-                    };
-                    }
-                    return unit;
-                }) || [];
-
-                // Add any *new* unit types that didn’t exist before
-                const newUnits = productToAdd.units?.filter(
-                    newUnit => !mergedUnits.some(u => u.id === newUnit.id)
-                ) || [];
-
-                updatedCart[existingProductIndex] = {
-                    ...existingProduct,
-                    units: [...mergedUnits, ...newUnits],
-                };
-
-                return updatedCart;
-            }
-            
-            // Otherwise, add it as a new product
-            return [...prevCart, productToAdd];
-        });
-        
-        setSelectedProduct(product);
-    };
-
-    const handleUpdatePrice = (unitId: string, value: number | null) => {
-        if (!selectedProduct) return;
-
-        const updatedUnits = selectedProduct?.units?.map((unit) =>
-            unit.id === unitId ? { ...unit, price: value || 0 } : unit
-        );
-
-        setSelectedProduct({
-            ...selectedProduct,
-            units: updatedUnits
-        });
-    };
-
-    const handleUpdateQuantity = (unitId: string, delta: number) => {
-        if (!selectedProduct) return;
-
-        const updatedUnits = selectedProduct?.units?.map((unit) => {
-            if (unit.id === unitId) {
-                const newQuantity = Math.max((unit.quantity || 0) + delta, 0); // prevent negative
-                return { ...unit, quantity: newQuantity };
-            }
-            return unit;
-        });
-        
-        setSelectedProduct({
-            ...selectedProduct,
-            units: updatedUnits,
-        });
-
-    };
-
-    return (
-        <Modal
-        centered
-        open={isOpen}
-        onCancel={onClose}
-        footer={null}
-        width={700}
-        >
-        {selectedProduct ? (
-            <>
-            {/* === Product header === */}
-            <div className="flex gap-4">
-                <Image
-                    width={700}
-                    height={800}
-                    src={"/1rcgKA.jpg"}
-                    alt={selectedProduct.name}
-                    className="w-40 h-40 object-cover rounded-md border"
-                />
-                <div>
-                <h2 className="text-lg font-bold">{selectedProduct.name}</h2>
-                <p className="text-sm text-gray-600">{selectedProduct.description}</p>
-                <p className="mt-2 text-md">
-                    Category: <span className="font-semibold">{selectedProduct.category}</span>
+  return (
+    <Modal
+      open={isOpen}
+      onCancel={onClose}
+      footer={null}
+      width={640}
+      centered
+      destroyOnHidden
+      closeIcon={
+        <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg hover:bg-accent transition-colors">
+          <X className="h-4 w-4" />
+        </span>
+      }
+    >
+      {draft ? (
+        <div className="space-y-5">
+          {/* Header */}
+          <div className="flex gap-4">
+            <div className="relative h-28 w-28 shrink-0 rounded-xl overflow-hidden border border-border bg-muted">
+              <Image
+                src="/1rcgKA.jpg"
+                fill
+                alt={draft.name}
+                className="object-cover"
+                draggable={false}
+                sizes="112px"
+              />
+            </div>
+            <div className="min-w-0 flex-1">
+              {draft.category && (
+                <span className="inline-block px-2 py-0.5 rounded-md bg-muted text-[10px] uppercase tracking-wide text-muted-foreground font-medium mb-1.5">
+                  {draft.category}
+                </span>
+              )}
+              <h2 className="text-xl font-semibold tracking-tight leading-tight">
+                {draft.name}
+              </h2>
+              {draft.description && (
+                <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
+                  {draft.description}
                 </p>
-                </div>
+              )}
             </div>
+          </div>
 
-            {/* === Units list === */}
-            <div className="mt-6">
-                <div className="grid grid-cols-2 gap-2 mb-4">
-                {selectedProduct?.units?.map((unit) => {
-                    return (
-                        <div key={unit.id} className="border py-4 px-3 mb-1 rounded-md border-gray-300 bg-blue-100">
-                            <div className="flex-col sm:flex-row flex gap-2">
-                                <span className="font-semibold text-lg">
-                                    {unit.unitName} <span className="font-normal hidden sm:inline">—</span>
-                                </span>
-                                <div className="text-md font-semibold gap-1">
-                                    <span>Rp </span>
-                                    <InputNumber
-                                        value={unit.price}
-                                        onChange={(value) => handleUpdatePrice(unit.id, value)}
-                                        controls={false}
-                                        className="w-24"
-                                        formatter={(value) =>
-                                            value
-                                                ? value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')
-                                                : ''
-                                        }
-                                        parser={(value) => Number(value?.replace(/\./g, '') || '0')}
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="flex flex-col sm:flex-row gap-2 justify-between mt-3">
-                                <div className="flex gap-3 items-center">
-                                    <Button
-                                        className="bg-white! text-black! hover:bg-green-600! hover:text-white!"
-                                        size="middle"
-                                        shape="circle"
-                                        onClick={() => handleUpdateQuantity(unit.id, -1)}
-                                        icon={<Minus className="h-3 w-3" />}
-                                    />
-                                    <span className="text-base font-bold w-8 text-center">{unit.quantity}</span>
-                                    <Button
-                                        className="bg-white! text-black! hover:bg-green-600! hover:text-white!"
-                                        size="middle"
-                                        shape="circle"
-                                        onClick={() => handleUpdateQuantity(unit.id, 1)}
-                                        icon={<Plus className="h-3 w-3" />}
-                                    />
-                                </div>
-
-                                {unit.quantity > 0 && (
-                                    <span className="text-lg font-semibold w-full flex justify-start text-blue-600 sm:justify-end sm:mt-2">
-                                        Rp {Number(unit.price * unit.quantity).toLocaleString('id-ID')}
-                                    </span>
-                                )}
-                            </div>
-                        </div>
-                    );
-                })}
-                </div>
+          {/* Units */}
+          <div className="space-y-2">
+            <div className="flex items-baseline justify-between">
+              <h3 className="text-sm font-semibold">Pilih satuan</h3>
+              <span className="text-[11px] text-muted-foreground">
+                {draft.units?.length || 0} pilihan
+              </span>
             </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {draft.units?.map((unit) => {
+                const isActive = (unit.quantity || 0) > 0;
+                return (
+                  <div
+                    key={unit.id}
+                    className={cn(
+                      "rounded-xl border bg-card p-3 transition-all",
+                      isActive
+                        ? "border-foreground/30 shadow-card"
+                        : "border-border hover:border-foreground/15",
+                    )}
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-sm font-semibold">
+                        {unit.unitName}
+                      </span>
+                      <div className="flex items-center gap-1 text-sm">
+                        <span className="text-muted-foreground">Rp</span>
+                        <InputNumber
+                          value={unit.price}
+                          onChange={(v) => setPrice(unit.id, v)}
+                          controls={false}
+                          className="w-28!"
+                          size="small"
+                          formatter={(v) =>
+                            v
+                              ? v
+                                  .toString()
+                                  .replace(/\B(?=(\d{3})+(?!\d))/g, ".")
+                              : ""
+                          }
+                          parser={(v) =>
+                            Number(v?.replace(/\./g, "") || "0")
+                          }
+                        />
+                      </div>
+                    </div>
 
-            {/* === Total === */}
-            <div className="flex items-center justify-between p-4 bg-blue-100 rounded-lg">
-                <span className="text-lg font-semibold">Total</span>
-                <span className="text-2xl font-bold text-blue-600">
-                        Rp {Number(totalPrice).toLocaleString('id-ID')}
-                    </span>
-            </div>
+                    <div className="mt-3 flex items-center justify-between">
+                      <div className="inline-flex items-center rounded-lg border border-border bg-background">
+                        <button
+                          type="button"
+                          onClick={() => setQty(unit.id, -1)}
+                          className="h-8 w-8 inline-flex items-center justify-center rounded-l-lg hover:bg-accent"
+                          aria-label="Kurangi"
+                        >
+                          <Minus className="h-3.5 w-3.5" />
+                        </button>
+                        <span className="w-10 text-center text-sm font-semibold tnum">
+                          {unit.quantity}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setQty(unit.id, 1)}
+                          className="h-8 w-8 inline-flex items-center justify-center rounded-r-lg hover:bg-accent"
+                          aria-label="Tambah"
+                        >
+                          <Plus className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
 
-            {/* === Footer Buttons === */}
-            <div className="flex justify-between w-full gap-4">
-                <Button
-                    className="mt-4 w-full"
-                    style={{ padding: '20px 0px' }}
-                    onClick={onClose}
-                >
-                    Close
-                </Button>
-                <Button
-                    className="mt-4 w-full"
-                    style={{ padding: '20px 0px' }}
-                    type="primary"
-                    icon={<ShoppingCart className="h-4 w-4" />}
-                    onClick={() => {
-                        if (selectedProduct) {
-                            handleAddToCart();
-                        }
-                        onClose();
-                    }}
-                    // disabled={!hasSelectedUnits}
-                >
-                    Add to Cart
-                </Button>
+                      <span
+                        className={cn(
+                          "text-sm font-semibold tnum",
+                          isActive ? "text-foreground" : "text-muted-foreground",
+                        )}
+                      >
+                        {formatRp((unit.price || 0) * (unit.quantity || 0))}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
-            </>
-        ) : (
-            <p>Loading product...</p>
-        )}
-        </Modal>
-    );
+          </div>
+
+          {/* Total + actions */}
+          <div className="flex items-center justify-between rounded-xl bg-muted/60 border border-border px-4 py-3">
+            <div>
+              <p className="text-[11px] text-muted-foreground uppercase tracking-wide">
+                Subtotal
+              </p>
+              <p className="text-2xl font-semibold tnum tracking-tight">
+                {formatRp(totalPrice)}
+              </p>
+            </div>
+            <span className="text-xs text-muted-foreground tnum">
+              {totalQty} qty
+            </span>
+          </div>
+
+          <div className="grid grid-cols-3 gap-2 pt-1">
+            <button
+              type="button"
+              onClick={onClose}
+              className="col-span-1 h-11 rounded-xl border border-border bg-card text-sm font-medium hover:bg-accent transition-colors press-down"
+            >
+              Batal
+            </button>
+            <button
+              type="button"
+              onClick={handleAddToCart}
+              disabled={totalQty === 0}
+              className={cn(
+                "col-span-2 h-11 rounded-xl text-sm font-semibold inline-flex items-center justify-center gap-2 press-down",
+                "bg-foreground text-background hover:bg-foreground/90",
+                "disabled:bg-muted disabled:text-muted-foreground disabled:cursor-not-allowed",
+              )}
+            >
+              <ShoppingCart className="h-4 w-4" />
+              Tambah ke Keranjang
+            </button>
+          </div>
+        </div>
+      ) : (
+        <p className="text-sm text-muted-foreground">Memuat produk…</p>
+      )}
+    </Modal>
+  );
 };
-
 
 export default SelectedProductModal;

@@ -1,205 +1,207 @@
+"use client";
 import { Modal } from "antd";
-import { Button } from "@/components/ui/button";
 import { SuccessPaymentModalProps } from "./interfaces/SuccessPaymentModalProps";
-import success from '../src/animations/Success.json';
-import Lottie from 'lottie-react';
+import success from "../src/animations/Success.json";
+import Lottie from "lottie-react";
+import { Printer, Check, X } from "lucide-react";
+import { formatRp, formatDate, formatTime } from "@/lib/format";
+import { cn } from "@/lib/utils";
 
-const SuccessPaymentModal: React.FC<SuccessPaymentModalProps> = ({ isOpen, products, onClose, totalAmount, setIsCheckoutModalOpen, setCart, paymentMethod, cashReceived }) => {
-    const label = cashReceived <= totalAmount ? 'Credit' : 'Kembali';
-    const totalQuantity = products.reduce((sum, product) => {
-        const productTotal = product.units?.reduce((unitSum, unit) => unitSum + (unit.quantity || 0), 0) || 0;
-        return sum + productTotal;
-    }, 0);
+const SuccessPaymentModal: React.FC<SuccessPaymentModalProps> = ({
+  isOpen,
+  products,
+  onClose,
+  totalAmount,
+  setIsCheckoutModalOpen,
+  setCart,
+  paymentMethod,
+  cashReceived,
+}) => {
+  const isCash = paymentMethod === "Cash";
+  const change = cashReceived - totalAmount;
+  const changeLabel = change >= 0 ? "Kembalian" : "Kurang";
 
-    const handlePrintReceipt = () => {
-        if (!products || products.length === 0) return;
+  const totalQuantity = products.reduce((sum, product) => {
+    const productTotal =
+      product.units?.reduce((unitSum, unit) => unitSum + (unit.quantity || 0), 0) ||
+      0;
+    return sum + productTotal;
+  }, 0);
 
-        const printWindow = window.open('', '', 'width=300,height=600');
-        if (!printWindow) return;
+  const handlePrintReceipt = () => {
+    if (!products || products.length === 0) return;
 
-        const receiptHTML = `
-            <!DOCTYPE html>
-            <html>
-            <head>
-            <title>Receipt</title>
-            <style>
-                @media print {
-                @page { margin: 0; size: 80mm auto; }
-                body { width: 80mm; margin: 0 auto; }
-                }
+    const printWindow = window.open("", "", "width=300,height=600");
+    if (!printWindow) return;
 
-                * { margin: 0; padding: 0; box-sizing: border-box; }
-                body {
-                    font-family: 'Courier New', monospace;
-                    width: 80mm;
-                    padding: 10px;
-                    font-size: 12px;
-                    line-height: 1.4;
-                }
+    const receiptHTML = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Receipt</title>
+        <style>
+          @media print { @page { margin: 0; size: 80mm auto; } body { width: 80mm; margin: 0 auto; } }
+          * { margin: 0; padding: 0; box-sizing: border-box; }
+          body { font-family: 'Courier New', monospace; width: 80mm; padding: 10px; font-size: 12px; line-height: 1.45; color: #000; }
+          .center { text-align: center; }
+          .bold { font-weight: bold; }
+          .large { font-size: 16px; }
+          .small { font-size: 10px; color: #444; }
+          .divider { border-top: 1px dashed #000; margin: 8px 0; }
+          .row { display: flex; justify-content: space-between; margin: 3px 0; }
+          .item-row { margin: 6px 0; }
+          .total-section { margin-top: 10px; padding-top: 8px; border-top: 2px solid #000; }
+        </style>
+      </head>
+      <body>
+        <div class="center bold large">Toko Ci Ali</div>
+        <div class="center small">GRGL PTM · Jakarta Barat</div>
+        <div class="row small">
+          <span>${formatDate()}</span>
+          <span>${formatTime()}</span>
+        </div>
+        <div class="divider"></div>
+        ${products
+          .map((item) =>
+            (item.units || [])
+              .map(
+                (unit) => `
+            <div class="item-row">
+              <div>${item.name} (${unit.unitName})</div>
+              <div class="row">
+                <span>${unit.quantity} x ${formatRp(unit.price)}</span>
+                <span class="bold">${formatRp(unit.price * unit.quantity)}</span>
+              </div>
+            </div>
+          `,
+              )
+              .join(""),
+          )
+          .join("")}
+        <div class="divider"></div>
+        <div class="small">QTY: ${totalQuantity}</div>
+        <div class="row bold large total-section">
+          <span>TOTAL</span>
+          <span>${formatRp(totalAmount)}</span>
+        </div>
+        ${
+          isCash
+            ? `
+          <div class="row"><span>Bayar</span><span>${formatRp(cashReceived)}</span></div>
+          <div class="row"><span>${changeLabel}</span><span>${formatRp(Math.abs(change))}</span></div>
+        `
+            : ""
+        }
+        <div class="divider"></div>
+        <div class="center">Pembayaran: ${paymentMethod?.toUpperCase()}</div>
+        <div class="center" style="margin-top: 10px;">Terima kasih!</div>
+      </body>
+      </html>
+    `;
 
-                .center { text-align: center; }
-                .bold { font-weight: bold; }
-                .large { font-size: 16px; }
-                .divider { border-top: 1px dashed #000; margin: 8px 0; }
-                .row { display: flex; justify-content: space-between; margin: 4px 0; page-break-inside: avoid; }
-                .item-row { margin: 6px 0; page-break-inside: avoid; }
-                .item-name {
-                    margin-left: 4px; /* adjust as needed */
-                }
-                .total-section { margin-top: 12px; padding-top: 8px; border-top: 2px solid #000; }
-                .date-time-row {
-                    font-size: 11px;
-                    margin-top: 4px;
-                    margin-bottom: 4px;
-                }
-                .row span:last-child {
-                    text-align: right;
-                    flex: 1;
-                }
-            </style>
-            </head>
-            <body>
-            <!-- Optional Store Header -->
-            <div class="center bold large">Toko Ci  Ali</div>
-            <!-- <div class="">Jelambar</div> -->
-            <div class="row date-time-row">
-                <span>${new Intl.DateTimeFormat('id-ID', {
-                    weekday: 'long',
-                    day: 'numeric',
-                    month: 'numeric',
-                    year: 'numeric'
-                    }).format(new Date())}
+    const doc = printWindow.document;
+    doc.open();
+    doc.close();
+    const parser = new DOMParser();
+    const newDoc = parser.parseFromString(receiptHTML, "text/html");
+    doc.replaceChild(doc.importNode(newDoc.documentElement, true), doc.documentElement);
+    printWindow.focus();
+    setTimeout(() => {
+      printWindow.print();
+      printWindow.close();
+    }, 500);
+  };
+
+  const handleDone = () => {
+    setCart([]);
+    setIsCheckoutModalOpen(false);
+    onClose();
+  };
+
+  return (
+    <Modal
+      open={isOpen}
+      onCancel={onClose}
+      maskClosable={false}
+      footer={null}
+      centered
+      width={460}
+      destroyOnHidden
+      closeIcon={
+        <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg hover:bg-accent transition-colors">
+          <X className="h-4 w-4" />
+        </span>
+      }
+    >
+      <div className="flex flex-col">
+        <div className="flex flex-col items-center text-center pt-2">
+          <div className="h-24 w-24 rounded-full bg-success-soft flex items-center justify-center">
+            <Lottie
+              animationData={success}
+              loop={false}
+              style={{ width: 100, height: 100 }}
+            />
+          </div>
+          <h2 className="text-xl font-semibold tracking-tight mt-3">
+            Pembayaran Berhasil
+          </h2>
+          <p className="text-sm text-muted-foreground mt-1">
+            Transaksi via {paymentMethod} telah diselesaikan.
+          </p>
+        </div>
+
+        {/* Receipt-style summary */}
+        <div className="mt-5 rounded-xl border border-border bg-muted/30 p-4 space-y-2">
+          <div className="flex justify-between text-sm">
+            <span className="text-muted-foreground">Total</span>
+            <span className="font-semibold tnum">{formatRp(totalAmount)}</span>
+          </div>
+          {isCash && (
+            <>
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Diterima</span>
+                <span className="font-medium tnum">{formatRp(cashReceived)}</span>
+              </div>
+              <div className="flex justify-between items-baseline pt-2 border-t border-border">
+                <span className="text-sm font-medium">{changeLabel}</span>
+                <span
+                  className={cn(
+                    "text-2xl font-semibold tnum tracking-tight",
+                    change >= 0 ? "text-success" : "text-warning-foreground",
+                  )}
+                >
+                  {formatRp(Math.abs(change))}
                 </span>
-                <span>${new Date().toLocaleTimeString('id-ID').replaceAll('.', ':')}</span>
-            </div>
-            <div class="divider"></div>
+              </div>
+            </>
+          )}
+          <div className="flex justify-between text-[11px] text-muted-foreground pt-1">
+            <span>{formatDate()}</span>
+            <span>{formatTime()}</span>
+          </div>
+        </div>
 
-            ${products.map((item) => {
-                return item.units?.map((unit) => {
-                return `
-                    <div class="item-row">
-                    <div class="">${item.name} (${unit.unitName})</div>
-                    <div class="row">
-                        <span class="item-name">${unit.quantity} x Rp. ${Number(unit.price).toLocaleString('id-ID')}</span>
-                        <span class="bold">Rp. ${(unit.price * unit.quantity).toLocaleString('id-ID')}</span>
-                    </div>
-                    </div>
-                `;
-                }).join('');
-            }).join('')}
-
-            <div class="divider"></div>
-            <div>QTY: ${totalQuantity}</div>
-            <div class="row bold large total-section">
-                <span>TOTAL</span>
-                <span>Rp. ${Number(totalAmount).toLocaleString('id-ID')}</span>
-            </div>
-
-            ${
-                paymentMethod === 'Cash'
-                ? `
-                <div class="row">
-                <span>Bayar</span>
-                <span>Rp. ${cashReceived.toLocaleString('id-ID')}</span>
-                </div>
-                <div class="row">
-                <span>${label}</span>
-                <span>Rp. ${Number(cashReceived - totalAmount).toLocaleString('id-ID')}</span>
-                </div>
-            `
-                : ''
-            }
-
-            <div class="divider"></div>
-            <div class="center">Payment: ${paymentMethod?.toUpperCase()}</div>
-            <div class="center" style="margin-top: 12px;">Thank you!</div>
-            </body>
-            </html>
-        `;
-
-        // ✅ Completely avoid document.write()
-        const doc = printWindow.document;
-        doc.open();
-        doc.close();
-
-        // Inject HTML safely
-        const parser = new DOMParser();
-        const newDoc = parser.parseFromString(receiptHTML, 'text/html');
-        doc.replaceChild(doc.importNode(newDoc.documentElement, true), doc.documentElement);
-
-        printWindow.focus();
-
-        // Wait a bit to ensure styles and DOM are loaded before printing
-        setTimeout(() => {
-            printWindow.print();
-            printWindow.close();
-        }, 500);
-    };
-
-
-
-    return (
-        <Modal 
-            open={isOpen} 
-            onCancel={onClose}
-            maskClosable={false}
-            footer={null}
-            centered
-        >
-            <div className="p-4 flex flex-col items-center justify-center text-center gap-4">
-                {/* <CheckCircle2 color="#22C55E" size={70} className="animate-bounce" /> */}
-                {/* <DotLottieReact
-                    src=""
-                    autoplay
-                /> */}
-                <Lottie animationData={success} loop={true} style={{ width: 150, height: 150 }} />
-                <h2 className="text-2xl font-semibold">Pembayaran Berhasil</h2>
-                <div className="text-gray-600">
-                    <span className="text-lg">Your transaction has been completed successfully via {paymentMethod}.</span>
-                </div>
-                <div className="flex flex-col items-center justify-between w-full">
-                    <div className="flex flex-row justify-between items-center w-full">
-                        <span className="text-black text-lg font-semibold">Total:</span>
-                        <span className="text-lg font-semibold">Rp. {Number(totalAmount).toLocaleString('id-ID')}</span>
-                    </div>
-                    <div className="flex flex-row justify-between items-center w-full">
-                        <span className="text-black text-lg font-semibold">Bayar:</span>
-                        <span className="text-lg font-semibold">Rp. {Number(cashReceived).toLocaleString('id-ID')}</span>
-                    </div>
-                    <div  className="flex flex-row justify-between items-center w-full">
-                        <span className="text-black text-lg font-semibold">{label}:</span>
-                        <span className="text-lg font-semibold">Rp. {Number(cashReceived - totalAmount).toLocaleString('id-ID')}</span>
-                    </div>
-                </div>
-
-            </div>
-            <div className="mt-1">
-                <div className="w-full flex flex-col sm:flex-row items-center justify-center text-center gap-2 my-2">
-                    <Button
-                        style={{paddingBlock: '1.3rem'}}
-                        className="min-w-6/12 bg-white hover:bg-[#7C3BED] text-black border border-gray-400/40 hover:text-white font-semibold hover:cursor-pointer"
-                        onClick={() => {
-                            handlePrintReceipt();
-                        }}
-                    >
-                        Print Receipt
-                    </Button>
-                    <Button
-                        style={{paddingBlock: '1.3rem'}}
-                        className="min-w-6/12 bg-[#7C3BED] hover:bg-[#8c52ef] text-white font-semibold hover:cursor-pointer"
-                        onClick={() => {
-                            setCart([]);
-                            setIsCheckoutModalOpen(false);
-                            onClose();
-                        }}
-                    >
-                        Selesai
-                    </Button>
-
-                </div>
-            </div>
-        </Modal>
-    );
+        <div className="grid grid-cols-2 gap-2 mt-5">
+          <button
+            type="button"
+            onClick={handlePrintReceipt}
+            className="h-12 rounded-xl border border-border bg-card text-sm font-medium hover:bg-accent transition-colors press-down inline-flex items-center justify-center gap-2"
+          >
+            <Printer className="h-4 w-4" />
+            Cetak Struk
+          </button>
+          <button
+            type="button"
+            onClick={handleDone}
+            className="h-12 rounded-xl bg-foreground text-background text-sm font-semibold hover:bg-foreground/90 press-down inline-flex items-center justify-center gap-2"
+          >
+            <Check className="h-4 w-4" />
+            Selesai
+          </button>
+        </div>
+      </div>
+    </Modal>
+  );
 };
 
 export default SuccessPaymentModal;
