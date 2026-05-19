@@ -217,6 +217,13 @@ const Card = () => {
     toast.info("Transaksi ditahan dihapus");
   };
 
+  const handleRenameHold = (id: string, label: string) => {
+    setHolds((prev) =>
+      prev.map((h) => (h.id === id ? { ...h, label } : h)),
+    );
+    toast.success("Nama transaksi diperbarui");
+  };
+
   const handleClearCart = () => setCart([]);
 
   return (
@@ -299,6 +306,7 @@ const Card = () => {
         holds={holds}
         onResume={handleResumeHold}
         onDelete={handleDeleteHold}
+        onRename={handleRenameHold}
         hasActiveCart={cart.length > 0}
       />
     </div>

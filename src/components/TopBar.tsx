@@ -3,6 +3,7 @@ import { useEffect, useRef, useSyncExternalStore } from "react";
 import { Search, ScanLine, X, Store, CalendarClock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatDate, formatTime } from "@/lib/format";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 let cachedClock = 0;
 const subscribeClock = (cb: () => void) => {
@@ -71,13 +72,16 @@ export function TopBar({
           </div>
         </div>
 
-        <div className="hidden md:flex items-center gap-2 text-xs text-muted-foreground">
-          <CalendarClock className="h-3.5 w-3.5" />
-          {now && (
-            <span className="tnum">
-              {formatDate(now)} · {formatTime(now)}
-            </span>
-          )}
+        <div className="flex items-center gap-3">
+          <div className="hidden md:flex items-center gap-2 text-xs text-muted-foreground">
+            <CalendarClock className="h-3.5 w-3.5" />
+            {now && (
+              <span className="tnum">
+                {formatDate(now)} · {formatTime(now)}
+              </span>
+            )}
+          </div>
+          <ThemeToggle />
         </div>
       </div>
 

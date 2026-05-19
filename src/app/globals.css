@@ -107,12 +107,55 @@
   --color-sidebar-ring: var(--sidebar-ring);
 }
 
+.dark {
+  --background: oklch(0.145 0.004 264);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.19 0.004 264);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.19 0.004 264);
+  --popover-foreground: oklch(0.985 0 0);
+
+  --primary: oklch(0.97 0 0);
+  --primary-foreground: oklch(0.18 0.004 264);
+
+  --success: oklch(0.72 0.16 152);
+  --success-foreground: oklch(0.18 0.004 264);
+  --success-soft: oklch(0.27 0.05 152);
+
+  --warning: oklch(0.78 0.16 75);
+  --warning-foreground: oklch(0.92 0.06 75);
+  --warning-soft: oklch(0.28 0.06 75);
+
+  --secondary: oklch(0.25 0.004 264);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.23 0.004 264);
+  --muted-foreground: oklch(0.68 0.005 264);
+  --accent: oklch(0.27 0.005 264);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.7 0.19 22);
+  --destructive-soft: oklch(0.28 0.08 22);
+  --border: oklch(1 0 0 / 0.1);
+  --input: oklch(1 0 0 / 0.12);
+  --ring: oklch(0.7 0.005 264 / 0.45);
+
+  --sidebar: oklch(0.17 0.004 264);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.97 0 0);
+  --sidebar-primary-foreground: oklch(0.18 0.004 264);
+  --sidebar-accent: oklch(0.25 0.004 264);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 0.1);
+  --sidebar-ring: oklch(0.7 0.005 264 / 0.45);
+}
+
 body {
   font-family: var(--font-geist-sans), "Inter", "Segoe UI", system-ui, sans-serif;
   font-feature-settings: "cv11", "ss01", "ss03";
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  color-scheme: light;
 }
+.dark body { color-scheme: dark; }
 
 /* Tabular numerics for all currency displays */
 .tnum,
@@ -139,15 +182,24 @@ input[type=number] { -moz-appearance: textfield; }
   background-clip: padding-box;
 }
 *::-webkit-scrollbar-thumb:hover { background-color: oklch(0.75 0.005 264); }
+.dark *::-webkit-scrollbar-thumb { background-color: oklch(0.32 0.005 264); }
+.dark *::-webkit-scrollbar-thumb:hover { background-color: oklch(0.42 0.005 264); }
 
 /* AntD overrides — bring AntD primitives in line with our design system */
 .ant-modal-content {
   border-radius: 16px !important;
   padding: 24px !important;
   box-shadow: 0 24px 48px -12px rgb(0 0 0 / 0.18) !important;
+  background-color: var(--color-card) !important;
+  color: var(--color-card-foreground) !important;
 }
+.ant-modal-mask { background-color: rgb(0 0 0 / 0.5) !important; }
+.dark .ant-modal-mask { background-color: rgb(0 0 0 / 0.7) !important; }
+.ant-modal-close-x { color: var(--color-muted-foreground) !important; }
 .ant-modal-close { top: 16px !important; right: 16px !important; }
 .ant-input-number {
+  background-color: var(--color-card) !important;
+  color: var(--color-foreground) !important;
   border-radius: 10px !important;
   border-color: var(--color-border) !important;
 }
@@ -156,7 +208,10 @@ input[type=number] { -moz-appearance: textfield; }
   border-color: var(--color-primary) !important;
   box-shadow: 0 0 0 3px var(--color-ring) !important;
 }
-.ant-input-number-input { padding: 8px 12px !important; }
+.ant-input-number-input {
+  padding: 8px 12px !important;
+  color: var(--color-foreground) !important;
+}
 .ant-segmented {
   background: var(--color-muted) !important;
   border-radius: 10px !important;

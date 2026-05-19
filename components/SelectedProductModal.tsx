@@ -27,8 +27,9 @@ const SelectedProductModal: React.FC<SelectedProductModalProps> = ({
     product?.id ?? null,
   );
 
-  if (product?.id !== prevProductId) {
-    setPrevProductId(product?.id ?? null);
+  const currentId = product?.id ?? null;
+  if (currentId !== prevProductId) {
+    setPrevProductId(currentId);
     setDraft(buildDraft(product));
   }
 
