@@ -161,6 +161,7 @@ const CardLeftPanel = ({ setCart }: CardLeftPanelProps) => {
         <SelectedProductModal
           isOpen={isProductModalOpen}
           product={selectedProduct}
+          cart={[]}
           onClose={() => {
             setIsProductModalOpen(false);
             setSelectedProduct(null);

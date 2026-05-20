@@ -4,6 +4,7 @@ export interface ProductUnit {
     unitName: string;   // "Kg", "Pack", etc.
     price: number;
     quantity: number;
+    imageUrl?: string;  // optional per-variant image; falls back to generated artwork
 }
 
 export const dummyProductUnit: ProductUnit[] = [

@@ -289,6 +289,7 @@ const Card = () => {
         isOpen={isProductModalOpen}
         onClose={() => setIsProductModalOpen(false)}
         product={selectedProduct}
+        cart={cart}
         setCart={setCart}
       />
 
