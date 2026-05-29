@@ -1,9 +1,5 @@
-import Card from "../../components/Card";
+import { redirect } from "next/navigation";
 
 export default function Home() {
-  return (
-    <div className="h-screen w-screen bg-background">
-      <Card />
-    </div>
-  );
+  redirect("/kasir");
 }

@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatRp } from "@/lib/format";
 
@@ -10,16 +11,20 @@ export function ProductCard({
   priceFrom,
   category,
   unavailable,
+  stock,
+  lowStock,
+  outOfStock,
 }: ProductCardProps) {
+  const isBlocked = unavailable || outOfStock;
   return (
     <button
       type="button"
-      onClick={unavailable ? undefined : onClick}
-      disabled={unavailable}
+      onClick={isBlocked ? undefined : onClick}
+      disabled={isBlocked}
       className={cn(
         "group relative flex flex-col rounded-2xl border bg-card text-left overflow-hidden press-down",
         "transition-all duration-200 ease-out",
-        unavailable
+        isBlocked
           ? "border-border/60 opacity-60 cursor-not-allowed"
           : "border-border hover:border-foreground/20 hover:shadow-card-hover hover:-translate-y-0.5 cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring",
         cartQuantity > 0 && "border-foreground/40 ring-1 ring-foreground/10",
@@ -34,7 +39,7 @@ export function ProductCard({
           alt={name}
           className={cn(
             "h-full w-full object-cover transition-transform duration-300 ease-out",
-            !unavailable && "group-hover:scale-[1.04]",
+            !isBlocked && "group-hover:scale-[1.04]",
           )}
           draggable={false}
         />
@@ -45,7 +50,21 @@ export function ProductCard({
           </div>
         )}
 
-        {unavailable && (
+        {category && !isBlocked && (
+          <div className="absolute top-2 left-2 px-2 py-0.5 rounded-md bg-card/90 backdrop-blur-sm border border-border text-[10px] uppercase tracking-wide text-muted-foreground font-medium">
+            {category}
+          </div>
+        )}
+
+        {outOfStock && (
+          <div className="absolute inset-0 bg-background/70 backdrop-blur-[1px] flex items-end p-2">
+            <span className="text-[11px] font-medium px-2 py-1 rounded-md bg-card text-destructive border border-destructive/30">
+              Stok habis
+            </span>
+          </div>
+        )}
+
+        {unavailable && !outOfStock && (
           <div className="absolute inset-0 bg-background/60 backdrop-blur-[1px] flex items-end p-2">
             <span className="text-[11px] font-medium px-2 py-1 rounded-md bg-card text-muted-foreground border border-border">
               Tidak tersedia
@@ -53,9 +72,10 @@ export function ProductCard({
           </div>
         )}
 
-        {category && !unavailable && (
-          <div className="absolute top-2 left-2 px-2 py-0.5 rounded-md bg-card/90 backdrop-blur-sm border border-border text-[10px] uppercase tracking-wide text-muted-foreground font-medium">
-            {category}
+        {lowStock && !outOfStock && !unavailable && (
+          <div className="absolute bottom-2 left-2 inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-warning-soft border border-warning/40 text-[10px] font-semibold text-warning-foreground">
+            <AlertTriangle className="h-3 w-3" />
+            <span className="tnum">{stock}</span>
           </div>
         )}
       </div>

@@ -1,6 +1,5 @@
 "use client";
 import React, { useMemo, useState } from "react";
-import CheckoutProductModalProps from "./interfaces/CheckoutProductModalProps";
 import { InputNumber, Modal, QRCode, Segmented } from "antd";
 import type { InputNumberProps } from "antd";
 import {
@@ -16,17 +15,23 @@ import {
   X,
 } from "lucide-react";
 import Image from "next/image";
+import QRCodeButton from "qrcode";
+import { toast } from "sonner";
 import { formatRp } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import handleQRIS from "@/utils/handleQRIS";
 import QRIS_CODE from "@/const/qr_code";
-import QRCodeButton from "qrcode";
-import SuccessPaymentModal from "./SuccessPaymentModal";
+import { usePos, cartTotal, cartItemCount } from "@/lib/store/usePos";
+import { commitSale } from "@/lib/store/repos/transactions";
+import { Transaction, PaymentMethod } from "@/lib/store/types";
+import { SuccessSheet } from "./SuccessSheet";
 
 const ROUND_UPS = [1_000, 5_000, 10_000, 50_000];
 const STANDARD_NOTES = [50_000, 100_000, 200_000, 500_000];
 
-const buildQuickAmounts = (total: number): { value: number; label: string }[] => {
+function buildQuickAmounts(
+  total: number,
+): { value: number; label: string }[] {
   if (total <= 0) return [];
   const set = new Set<number>();
   const items: { value: number; label: string }[] = [];
@@ -35,10 +40,10 @@ const buildQuickAmounts = (total: number): { value: number; label: string }[] =>
   set.add(total);
 
   for (const step of ROUND_UPS) {
-    const rounded = Math.ceil(total / step) * step;
-    if (rounded > total && !set.has(rounded)) {
-      set.add(rounded);
-      items.push({ value: rounded, label: formatRp(rounded) });
+    const r = Math.ceil(total / step) * step;
+    if (r > total && !set.has(r)) {
+      set.add(r);
+      items.push({ value: r, label: formatRp(r) });
     }
   }
   for (const note of STANDARD_NOTES) {
@@ -48,68 +53,51 @@ const buildQuickAmounts = (total: number): { value: number; label: string }[] =>
     }
   }
   return items.slice(0, 6);
+}
+
+type Props = {
+  isOpen: boolean;
+  onClose: () => void;
 };
 
-const CheckoutProductModal: React.FC<CheckoutProductModalProps> = ({
-  isOpen,
-  onClose,
-  cart,
-  setCart,
-  setIsCheckoutModalOpen,
-}) => {
-  const [paymentMethod, setPaymentMethod] = useState<"Cash" | "QRIS">("Cash");
+export function CheckoutModal({ isOpen, onClose }: Props) {
+  const cart = usePos((s) => s.cart);
+  const removeCartLine = usePos((s) => s.removeCartLine);
+  const afterSaleCommit = usePos((s) => s.afterSaleCommit);
+
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cash");
   const [cashReceived, setCashReceived] = useState<number>(0);
   const [selectedAmount, setSelectedAmount] = useState<number | null>(null);
   const [qrisLoading, setQrisLoading] = useState<boolean>(true);
   const [qrisData, setQrisData] = useState<string>(QRIS_CODE);
-  const [isSuccessModalOpen, setIsSuccessModalOpen] = useState<boolean>(false);
+  const [confirmedTx, setConfirmedTx] = useState<Transaction | null>(null);
   const [prevIsOpen, setPrevIsOpen] = useState<boolean>(isOpen);
+  const [submitting, setSubmitting] = useState(false);
 
   if (isOpen && !prevIsOpen) {
     setPrevIsOpen(true);
-    setPaymentMethod("Cash");
+    setPaymentMethod("cash");
     setCashReceived(0);
     setSelectedAmount(null);
     setQrisLoading(true);
+    setConfirmedTx(null);
+    setSubmitting(false);
   } else if (!isOpen && prevIsOpen) {
     setPrevIsOpen(false);
   }
 
-  const totalAmount = useMemo(
-    () =>
-      cart.reduce((total, product) => {
-        const productTotal =
-          product.units?.reduce(
-            (unitTotal, unit) =>
-              unitTotal + (unit.price || 0) * (unit.quantity || 0),
-            0,
-          ) || 0;
-        return total + productTotal;
-      }, 0),
-    [cart],
-  );
-
-  const totalItems = useMemo(
-    () =>
-      cart.reduce(
-        (acc, p) =>
-          acc + (p.units?.reduce((s, u) => s + (u.quantity || 0), 0) || 0),
-        0,
-      ),
-    [cart],
-  );
-
+  const totalAmount = cartTotal({ cart });
+  const totalItems = cartItemCount({ cart });
   const quickAmounts = useMemo(
     () => buildQuickAmounts(totalAmount),
     [totalAmount],
   );
 
-  const handleQrisRefresh = async () => {
+  const handleQrisRefresh = () => {
     try {
-      const qris = handleQRIS("ID10254493976740303UMI", totalAmount);
-      setQrisData(qris);
-    } catch (error) {
-      console.error("Error fetching QRIS data:", error);
+      setQrisData(handleQRIS("ID10254493976740303UMI", totalAmount));
+    } catch (e) {
+      console.error("QRIS refresh failed", e);
     } finally {
       setQrisLoading(false);
     }
@@ -117,62 +105,62 @@ const CheckoutProductModal: React.FC<CheckoutProductModalProps> = ({
 
   const handleDownloadQRIS = async () => {
     try {
-      const newQris = handleQRIS("ID10254493976740303UMI", totalAmount);
-      setQrisData(newQris);
-      const qrPng = await QRCodeButton.toDataURL(newQris);
+      const code = handleQRIS("ID10254493976740303UMI", totalAmount);
+      setQrisData(code);
+      const png = await QRCodeButton.toDataURL(code);
       const link = document.createElement("a");
-      link.href = qrPng;
+      link.href = png;
       link.download = "qris.png";
       document.body.appendChild(link);
       link.click();
       link.remove();
-    } catch (err) {
-      console.error("Failed to download QR:", err);
+    } catch (e) {
+      console.error("QRIS download failed", e);
     }
   };
 
   const handleQrisStatus = () => {
-    if (totalAmount <= 0) return "expired";
-    return qrisLoading ? "expired" : "active";
-  };
-
-  const handleRemoveItem = (productId: string, unitId: string) => {
-    setCart((prev) =>
-      prev
-        .map((p) =>
-          p.id === productId
-            ? { ...p, units: p.units?.filter((u) => u.id !== unitId) }
-            : p,
-        )
-        .filter((p) => (p.units?.length ?? 0) > 0),
-    );
+    if (totalAmount <= 0) return "expired" as const;
+    return qrisLoading ? ("expired" as const) : ("active" as const);
   };
 
   const formatter: InputNumberProps<number>["formatter"] = (value) => {
     if (!value && value !== 0) return "";
     const parts = value.toString().split(".");
-    const integerPart = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-    return `Rp ${integerPart}`;
+    const integer = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    return `Rp ${integer}`;
   };
-
   const parser: InputNumberProps<number>["parser"] = (value) => {
     if (!value) return 0;
     return Number(value.replace(/[Rp\s.]/g, "")) || 0;
   };
 
   const change = cashReceived - totalAmount;
-  const isCashShort = paymentMethod === "Cash" && cashReceived < totalAmount;
+  const isCashShort = paymentMethod === "cash" && cashReceived < totalAmount;
   const canConfirm =
     cart.length > 0 &&
     totalAmount > 0 &&
-    (paymentMethod === "QRIS" || !isCashShort);
+    !submitting &&
+    (paymentMethod !== "cash" || !isCashShort);
 
   const handleConfirm = () => {
     if (!canConfirm) return;
-    setIsSuccessModalOpen(true);
+    setSubmitting(true);
+    try {
+      const { transaction } = commitSale({
+        lines: cart,
+        paymentMethod,
+        cashTendered:
+          paymentMethod === "cash" ? cashReceived : undefined,
+      });
+      afterSaleCommit();
+      setConfirmedTx(transaction);
+    } catch (e) {
+      console.error("commit sale failed", e);
+      toast.error("Gagal menyimpan transaksi");
+      setSubmitting(false);
+    }
   };
-
-  let lineNumber = 0;
 
   return (
     <>
@@ -183,7 +171,7 @@ const CheckoutProductModal: React.FC<CheckoutProductModalProps> = ({
         maskClosable={false}
         footer={null}
         destroyOnHidden
-        className={isSuccessModalOpen ? "blur-sm" : ""}
+        className={confirmedTx ? "blur-sm" : ""}
         closeIcon={
           <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg hover:bg-accent transition-colors">
             <X className="h-4 w-4" />
@@ -192,14 +180,16 @@ const CheckoutProductModal: React.FC<CheckoutProductModalProps> = ({
         styles={{ content: { padding: 0, borderRadius: 16 } }}
       >
         <div className="grid grid-cols-1 lg:grid-cols-5">
-          {/* LEFT — Order summary */}
+          {/* Order summary */}
           <section className="lg:col-span-2 border-b lg:border-b-0 lg:border-r border-border bg-muted/30 p-6 flex flex-col">
             <div className="flex items-center gap-3 mb-4">
               <div className="h-10 w-10 rounded-xl bg-foreground/5 flex items-center justify-center">
                 <Receipt className="h-5 w-5" />
               </div>
               <div>
-                <h2 className="text-lg font-semibold tracking-tight">Pesanan</h2>
+                <h2 className="text-lg font-semibold tracking-tight">
+                  Pesanan
+                </h2>
                 <p className="text-xs text-muted-foreground tnum">
                   {totalItems} item dalam transaksi
                 </p>
@@ -208,43 +198,38 @@ const CheckoutProductModal: React.FC<CheckoutProductModalProps> = ({
 
             <div className="flex-1 min-h-0 rounded-xl border border-border bg-card overflow-auto">
               <ul className="divide-y divide-border">
-                {cart.map((product) =>
-                  product.units?.map((unit) => {
-                    lineNumber += 1;
-                    return (
-                      <li
-                        key={`${product.id}-${unit.id}`}
-                        className="flex items-start gap-3 px-3 py-3 group hover:bg-accent/40 transition-colors"
-                      >
-                        <span className="mt-0.5 inline-flex h-5 min-w-5 px-1 items-center justify-center rounded-md bg-foreground/5 text-[10px] font-semibold tnum">
-                          {lineNumber}
+                {cart.map((line, idx) => (
+                    <li
+                      key={line.productUnitId}
+                      className="flex items-start gap-3 px-3 py-3 group hover:bg-accent/40 transition-colors"
+                    >
+                      <span className="mt-0.5 inline-flex h-5 min-w-5 px-1 items-center justify-center rounded-md bg-foreground/5 text-[10px] font-semibold tnum">
+                        {idx + 1}
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium leading-tight truncate">
+                          {line.productName}
+                        </p>
+                        <p className="text-xs text-muted-foreground tnum mt-0.5">
+                          {line.quantity} {line.unitName} ·{" "}
+                          {formatRp(line.price)}
+                        </p>
+                      </div>
+                      <div className="flex flex-col items-end gap-1">
+                        <span className="text-sm font-semibold tnum">
+                          {formatRp(line.price * line.quantity)}
                         </span>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium leading-tight truncate">
-                            {product.name}
-                          </p>
-                          <p className="text-xs text-muted-foreground tnum mt-0.5">
-                            {unit.quantity} {unit.unitName} ·{" "}
-                            {formatRp(unit.price)}
-                          </p>
-                        </div>
-                        <div className="flex flex-col items-end gap-1">
-                          <span className="text-sm font-semibold tnum">
-                            {formatRp((unit.price || 0) * (unit.quantity || 0))}
-                          </span>
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveItem(product.id, unit.id)}
-                            className="opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive"
-                            aria-label="Hapus item"
-                          >
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </button>
-                        </div>
-                      </li>
-                    );
-                  }),
-                )}
+                        <button
+                          type="button"
+                          onClick={() => removeCartLine(line.productUnitId)}
+                          className="opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive"
+                          aria-label="Hapus item"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    </li>
+                  ))}
                 {cart.length === 0 && (
                   <li className="text-center text-sm text-muted-foreground py-10">
                     Keranjang kosong
@@ -256,7 +241,9 @@ const CheckoutProductModal: React.FC<CheckoutProductModalProps> = ({
             <div className="mt-4 space-y-1.5">
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Subtotal</span>
-                <span className="font-medium tnum">{formatRp(totalAmount)}</span>
+                <span className="font-medium tnum">
+                  {formatRp(totalAmount)}
+                </span>
               </div>
               <div className="flex justify-between items-baseline pt-2 border-t border-border">
                 <span className="text-base font-semibold">Total</span>
@@ -267,7 +254,7 @@ const CheckoutProductModal: React.FC<CheckoutProductModalProps> = ({
             </div>
           </section>
 
-          {/* RIGHT — Payment */}
+          {/* Payment */}
           <section className="lg:col-span-3 p-6 flex flex-col min-h-[640px]">
             <h2 className="text-lg font-semibold tracking-tight mb-3">
               Pembayaran
@@ -278,7 +265,7 @@ const CheckoutProductModal: React.FC<CheckoutProductModalProps> = ({
               className="w-full [&_.ant-segmented-item]:flex-1"
               value={paymentMethod}
               onChange={(val) => {
-                setPaymentMethod(val as "Cash" | "QRIS");
+                setPaymentMethod(val as PaymentMethod);
                 setCashReceived(0);
                 setSelectedAmount(null);
                 setQrisLoading(true);
@@ -291,7 +278,7 @@ const CheckoutProductModal: React.FC<CheckoutProductModalProps> = ({
                       <span className="font-medium">Tunai</span>
                     </div>
                   ),
-                  value: "Cash",
+                  value: "cash",
                 },
                 {
                   label: (
@@ -300,12 +287,12 @@ const CheckoutProductModal: React.FC<CheckoutProductModalProps> = ({
                       <span className="font-medium">QRIS</span>
                     </div>
                   ),
-                  value: "QRIS",
+                  value: "qris",
                 },
               ]}
             />
 
-            {paymentMethod === "Cash" && (
+            {paymentMethod === "cash" && (
               <div className="flex-1 flex flex-col mt-4 gap-4">
                 <div>
                   <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
@@ -364,7 +351,6 @@ const CheckoutProductModal: React.FC<CheckoutProductModalProps> = ({
                   </div>
                 )}
 
-                {/* Big kembalian display */}
                 <div
                   className={cn(
                     "mt-auto rounded-2xl border p-5 transition-colors",
@@ -413,13 +399,15 @@ const CheckoutProductModal: React.FC<CheckoutProductModalProps> = ({
               </div>
             )}
 
-            {paymentMethod === "QRIS" && (
+            {paymentMethod === "qris" && (
               <div className="flex-1 flex flex-col mt-4 items-center">
                 <div className="text-center max-w-xs">
-                  <h3 className="text-sm font-semibold">Toko Ci Ali, GRGL PTM</h3>
+                  <h3 className="text-sm font-semibold">
+                    Toko Ci Ali, GRGL PTM
+                  </h3>
                   <p className="text-[11px] text-muted-foreground leading-snug mt-0.5">
-                    Jl. Jelambar Jaya 4 No. 18, Jelambar Baru, Grogol Petamburan,
-                    Jakarta Barat
+                    Jl. Jelambar Jaya 4 No. 18, Jelambar Baru, Grogol
+                    Petamburan, Jakarta Barat
                   </p>
                 </div>
 
@@ -476,7 +464,7 @@ const CheckoutProductModal: React.FC<CheckoutProductModalProps> = ({
                 "disabled:bg-muted disabled:text-muted-foreground disabled:cursor-not-allowed",
               )}
             >
-              {isSuccessModalOpen ? (
+              {submitting ? (
                 <LoaderCircleIcon className="h-5 w-5 animate-spin" />
               ) : (
                 <>
@@ -489,21 +477,14 @@ const CheckoutProductModal: React.FC<CheckoutProductModalProps> = ({
         </div>
       </Modal>
 
-      <SuccessPaymentModal
-        isOpen={isSuccessModalOpen}
-        paymentMethod={paymentMethod}
+      <SuccessSheet
+        isOpen={!!confirmedTx}
+        transaction={confirmedTx}
         onClose={() => {
+          setConfirmedTx(null);
           onClose();
-          setIsSuccessModalOpen(false);
         }}
-        products={cart}
-        setCart={setCart}
-        totalAmount={totalAmount}
-        setIsCheckoutModalOpen={setIsCheckoutModalOpen}
-        cashReceived={cashReceived}
       />
     </>
   );
-};
-
-export default CheckoutProductModal;
+}

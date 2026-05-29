@@ -1,9 +1,17 @@
 "use client";
 import { useEffect, useRef, useSyncExternalStore } from "react";
-import { Search, ScanLine, X, Store, CalendarClock } from "lucide-react";
+import {
+  Search,
+  ScanLine,
+  X,
+  Layers,
+  CalendarClock,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatDate, formatTime } from "@/lib/format";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { useHydrated } from "@/lib/useHydrated";
+import { usePos } from "@/lib/store/usePos";
 
 let cachedClock = 0;
 const subscribeClock = (cb: () => void) => {
@@ -16,26 +24,37 @@ const subscribeClock = (cb: () => void) => {
   return () => clearInterval(t);
 };
 const getClockSnapshot = () => cachedClock;
+const getServerClock = () => 0;
 
-type TopBarProps = {
+type Props = {
   search: string;
   onSearchChange: (v: string) => void;
   categories: string[];
   selectedCategory: string;
   onCategoryChange: (v: string) => void;
   onScanSubmit?: (code: string) => void;
+  onOpenHolds: () => void;
+  heldCount: number;
 };
 
-export function TopBar({
+export function KasirHeader({
   search,
   onSearchChange,
   categories,
   selectedCategory,
   onCategoryChange,
   onScanSubmit,
-}: TopBarProps) {
+  onOpenHolds,
+  heldCount,
+}: Props) {
   const searchRef = useRef<HTMLInputElement>(null);
-  const nowMs = useSyncExternalStore(subscribeClock, getClockSnapshot, () => 0);
+  const hydrated = useHydrated();
+  const merchant = usePos((s) => s.settings.merchant);
+  const nowMs = useSyncExternalStore(
+    subscribeClock,
+    getClockSnapshot,
+    getServerClock,
+  );
   const now = nowMs ? new Date(nowMs) : null;
 
   useEffect(() => {
@@ -58,34 +77,6 @@ export function TopBar({
 
   return (
     <header className="flex flex-col border-b border-border bg-background">
-      {/* Brand row */}
-      <div className="flex items-center justify-between px-6 py-3 border-b border-border/60">
-        <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-foreground text-background">
-            <Store className="h-4.5 w-4.5" />
-          </div>
-          <div className="leading-tight">
-            <p className="text-sm font-semibold tracking-tight">Toko Ci Ali</p>
-            <p className="text-[11px] text-muted-foreground">
-              GRGL PTM · Jakarta Barat
-            </p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <div className="hidden md:flex items-center gap-2 text-xs text-muted-foreground">
-            <CalendarClock className="h-3.5 w-3.5" />
-            {now && (
-              <span className="tnum">
-                {formatDate(now)} · {formatTime(now)}
-              </span>
-            )}
-          </div>
-          <ThemeToggle />
-        </div>
-      </div>
-
-      {/* Search + Scan row */}
       <div className="flex items-center gap-3 px-6 py-3">
         <div className="relative flex-1 max-w-2xl">
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -124,15 +115,41 @@ export function TopBar({
           </div>
         </div>
 
-        <div className="hidden sm:flex items-center gap-2 h-11 px-3.5 rounded-xl border border-dashed border-border bg-muted/40 text-xs text-muted-foreground">
+        <div className="hidden lg:flex items-center gap-2 h-11 px-3.5 rounded-xl border border-dashed border-border bg-muted/40 text-xs text-muted-foreground">
           <ScanLine className="h-4 w-4" />
-          <span>Siap menerima scan barcode</span>
+          <span>Siap menerima scan</span>
         </div>
+
+        <button
+          type="button"
+          onClick={onOpenHolds}
+          className={cn(
+            "relative inline-flex items-center gap-2 h-11 px-3.5 rounded-xl border border-border bg-card press-down",
+            "text-sm font-medium hover:bg-accent transition-colors",
+            heldCount > 0 && "border-foreground/25",
+          )}
+          aria-label="Transaksi ditahan"
+        >
+          <Layers className="h-4 w-4" />
+          <span className="hidden md:inline">Hold</span>
+          <span className="tnum">{heldCount}</span>
+        </button>
+
+        <div className="hidden xl:flex items-center gap-2 text-xs text-muted-foreground">
+          <CalendarClock className="h-3.5 w-3.5" />
+          {now && (
+            <span className="tnum">
+              {hydrated ? merchant.name : "Toko"} · {formatDate(now)} ·{" "}
+              {formatTime(now)}
+            </span>
+          )}
+        </div>
+
+        <ThemeToggle />
       </div>
 
-      {/* Category chips */}
       <div className="px-6 pb-3">
-        <div className="flex items-center gap-2 overflow-x-auto -mx-1 px-1 pb-1 scrollbar-thin">
+        <div className="flex items-center gap-2 overflow-x-auto -mx-1 px-1 pb-1">
           {tabs.map((tab) => {
             const value = tab === "Semua" ? "all" : tab;
             const isActive = selectedCategory === value;

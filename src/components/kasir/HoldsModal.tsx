@@ -1,30 +1,32 @@
 "use client";
-import { Modal } from "antd";
-import { Layers, Play, Trash2, ShoppingBag, Pencil, Check, X } from "lucide-react";
-import { HeldTransaction } from "./interfaces/HeldTransaction";
-import { formatRp, formatTime } from "@/lib/format";
-import { cn } from "@/lib/utils";
 import { useEffect, useRef, useState } from "react";
+import { Modal } from "antd";
+import {
+  Check,
+  Layers,
+  Pencil,
+  Play,
+  ShoppingBag,
+  Trash2,
+  X,
+} from "lucide-react";
+import { toast } from "sonner";
+import { cn } from "@/lib/utils";
+import { formatRp, formatTime } from "@/lib/format";
+import { usePos } from "@/lib/store/usePos";
 
 type Props = {
   isOpen: boolean;
   onClose: () => void;
-  holds: HeldTransaction[];
-  onResume: (id: string) => void;
-  onDelete: (id: string) => void;
-  onRename: (id: string, label: string) => void;
-  hasActiveCart: boolean;
 };
 
-export default function HeldTransactionsModal({
-  isOpen,
-  onClose,
-  holds,
-  onResume,
-  onDelete,
-  onRename,
-  hasActiveCart,
-}: Props) {
+export function HoldsModal({ isOpen, onClose }: Props) {
+  const holds = usePos((s) => s.holds);
+  const cart = usePos((s) => s.cart);
+  const resumeHold = usePos((s) => s.resumeHold);
+  const deleteHold = usePos((s) => s.deleteHold);
+  const renameHold = usePos((s) => s.renameHold);
+
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draftLabel, setDraftLabel] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
@@ -36,15 +38,18 @@ export default function HeldTransactionsModal({
     }
   }, [editingId]);
 
-  const beginEdit = (h: HeldTransaction) => {
-    setEditingId(h.id);
-    setDraftLabel(h.label);
+  const beginEdit = (id: string, label: string) => {
+    setEditingId(id);
+    setDraftLabel(label);
   };
 
   const commitEdit = () => {
     if (!editingId) return;
     const trimmed = draftLabel.trim();
-    if (trimmed) onRename(editingId, trimmed);
+    if (trimmed) {
+      renameHold(editingId, trimmed);
+      toast.success("Nama transaksi diperbarui");
+    }
     setEditingId(null);
     setDraftLabel("");
   };
@@ -52,6 +57,17 @@ export default function HeldTransactionsModal({
   const cancelEdit = () => {
     setEditingId(null);
     setDraftLabel("");
+  };
+
+  const handleResume = (id: string) => {
+    resumeHold(id);
+    onClose();
+    toast.success("Transaksi dilanjutkan");
+  };
+
+  const handleDelete = (id: string) => {
+    deleteHold(id);
+    toast.info("Transaksi ditahan dihapus");
   };
 
   return (
@@ -62,6 +78,11 @@ export default function HeldTransactionsModal({
       centered
       width={520}
       destroyOnHidden
+      closeIcon={
+        <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg hover:bg-accent transition-colors">
+          <X className="h-4 w-4" />
+        </span>
+      }
     >
       <div className="space-y-4">
         <div className="flex items-center gap-3">
@@ -83,8 +104,8 @@ export default function HeldTransactionsModal({
             <ShoppingBag className="h-8 w-8 text-muted-foreground mb-2" />
             <p className="text-sm font-medium">Belum ada transaksi ditahan</p>
             <p className="text-xs text-muted-foreground mt-1 max-w-[280px]">
-              Gunakan tombol <span className="font-medium">Hold</span> di keranjang
-              untuk menyimpan transaksi sementara.
+              Gunakan tombol <span className="font-medium">Hold</span> di
+              keranjang untuk menyimpan transaksi sementara.
             </p>
           </div>
         ) : (
@@ -128,7 +149,7 @@ export default function HeldTransactionsModal({
                     ) : (
                       <button
                         type="button"
-                        onClick={() => beginEdit(h)}
+                        onClick={() => beginEdit(h.id, h.label)}
                         className="group/name flex items-center gap-1.5 text-sm font-medium truncate hover:text-foreground/80 w-full text-left"
                         title="Klik untuk ubah nama"
                       >
@@ -171,7 +192,7 @@ export default function HeldTransactionsModal({
                       <>
                         <button
                           type="button"
-                          onClick={() => onResume(h.id)}
+                          onClick={() => handleResume(h.id)}
                           className={cn(
                             "h-9 px-3 inline-flex items-center gap-1.5 rounded-lg text-xs font-medium press-down",
                             "bg-foreground text-background hover:bg-foreground/90",
@@ -182,7 +203,7 @@ export default function HeldTransactionsModal({
                         </button>
                         <button
                           type="button"
-                          onClick={() => onDelete(h.id)}
+                          onClick={() => handleDelete(h.id)}
                           className="h-9 w-9 inline-flex items-center justify-center rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive-soft transition-colors"
                           aria-label="Hapus"
                         >
@@ -197,10 +218,10 @@ export default function HeldTransactionsModal({
           </ul>
         )}
 
-        {hasActiveCart && holds.length > 0 && (
+        {cart.length > 0 && holds.length > 0 && (
           <p className="text-[11px] bg-warning-soft text-warning-foreground border border-warning/30 rounded-lg px-3 py-2">
-            Keranjang aktif akan otomatis ditahan ketika Anda melanjutkan transaksi
-            lain.
+            Keranjang aktif akan otomatis ditahan ketika Anda melanjutkan
+            transaksi lain.
           </p>
         )}
       </div>

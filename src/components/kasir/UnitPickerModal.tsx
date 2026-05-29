@@ -1,115 +1,95 @@
 "use client";
-import { InputNumber, Modal } from "antd";
-import { SelectedProductModalProps } from "./interfaces/SelectedProductModalProps";
-import { Check, Minus, Pencil, Plus, ShoppingCart, X } from "lucide-react";
-import { Product } from "./interfaces/Product";
-import { ProductUnit } from "./interfaces/ProductUnit";
 import { useMemo, useState } from "react";
+import { useShallow } from "zustand/react/shallow";
+import { Modal } from "antd";
+import { Check, Minus, Plus, ShoppingCart, X } from "lucide-react";
 import Image from "next/image";
 import { toast } from "sonner";
-import { formatRp } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { formatRp } from "@/lib/format";
 import { UnitArtwork } from "@/components/UnitArtwork";
+import { Product, ProductUnit } from "@/lib/store/types";
+import { usePos, stockOf, unitsOf } from "@/lib/store/usePos";
 
-const buildDraft = (product: Product | null): Product | null =>
-  product
-    ? {
-        ...product,
-        units: product.units?.map((u) => ({ ...u })) ?? [],
-      }
-    : null;
+type Props = {
+  isOpen: boolean;
+  productId: string | null;
+  onClose: () => void;
+};
 
-const SelectedProductModal: React.FC<SelectedProductModalProps> = ({
-  isOpen,
-  product,
-  cart,
-  onClose,
-  setCart,
-}) => {
-  const [draft, setDraft] = useState<Product | null>(() => buildDraft(product));
-  const [prevProductId, setPrevProductId] = useState<string | null>(
-    product?.id ?? null,
+export function UnitPickerModal({ isOpen, productId, onClose }: Props) {
+  const product = usePos(
+    useShallow((s) =>
+      productId ? s.products.find((p) => p.id === productId) ?? null : null,
+    ),
   );
-  const [selectedUnitId, setSelectedUnitId] = useState<string | null>(
-    product?.units?.[0]?.id ?? null,
+  const units = usePos(
+    useShallow((s) =>
+      productId ? unitsOf({ units: s.units }, productId) : [],
+    ),
   );
+  const stockState = usePos((s) => s.stock);
+  const cart = usePos((s) => s.cart);
+  const addToCart = usePos((s) => s.addToCart);
+
+  const [selectedUnitId, setSelectedUnitId] = useState<string | null>(null);
   const [quantity, setQuantity] = useState(1);
-  const [editingPrice, setEditingPrice] = useState(false);
+  const [prevProductId, setPrevProductId] = useState<string | null>(null);
 
-  // Reset all local state when a different product is opened.
-  const currentId = product?.id ?? null;
-  if (currentId !== prevProductId) {
-    setPrevProductId(currentId);
-    setDraft(buildDraft(product));
-    setSelectedUnitId(product?.units?.[0]?.id ?? null);
+  // Reset on product change (React 19 prop-sync pattern).
+  if (productId !== prevProductId) {
+    setPrevProductId(productId);
+    setSelectedUnitId(units[0]?.id ?? null);
     setQuantity(1);
-    setEditingPrice(false);
   }
 
-  const units = draft?.units ?? [];
-  const selectedUnit = useMemo(
+  const selectedUnit: ProductUnit | null = useMemo(
     () => units.find((u) => u.id === selectedUnitId) ?? units[0] ?? null,
     [units, selectedUnitId],
   );
 
   const cartQtyByUnit = useMemo(() => {
     const map: Record<string, number> = {};
-    const inCart = cart.find((p) => p.id === draft?.id);
-    for (const u of inCart?.units ?? []) map[u.id] = u.quantity || 0;
+    for (const c of cart) {
+      if (c.productId === productId) map[c.productUnitId] = c.quantity;
+    }
     return map;
-  }, [cart, draft]);
+  }, [cart, productId]);
 
-  const productCartQty = useMemo(
-    () => Object.values(cartQtyByUnit).reduce((a, b) => a + b, 0),
-    [cartQtyByUnit],
-  );
+  const stockByUnit = useMemo(() => {
+    const map: Record<string, number> = {};
+    for (const u of units) map[u.id] = stockOf({ stock: stockState }, u.id);
+    return map;
+  }, [stockState, units]);
 
-  const lineTotal = (selectedUnit?.price || 0) * quantity;
+  const selectedStock = selectedUnit ? stockByUnit[selectedUnit.id] ?? 0 : 0;
+  const selectedCartQty = selectedUnit
+    ? cartQtyByUnit[selectedUnit.id] ?? 0
+    : 0;
+  const remaining = Math.max(0, selectedStock - selectedCartQty);
+  const lineTotal = (selectedUnit?.price ?? 0) * quantity;
 
-  const updateUnit = (unitId: string, patch: Partial<ProductUnit>) => {
-    setDraft((prev) =>
-      prev
-        ? {
-            ...prev,
-            units: prev.units?.map((u) =>
-              u.id === unitId ? { ...u, ...patch } : u,
-            ),
-          }
-        : prev,
-    );
-  };
-
-  const handleAddToCart = () => {
-    if (!draft || !selectedUnit || quantity < 1) return;
-    const unitToAdd: ProductUnit = { ...selectedUnit, quantity };
-
-    setCart((prev) => {
-      const idx = prev.findIndex((p) => p.id === draft.id);
-      if (idx === -1) {
-        return [...prev, { ...draft, units: [unitToAdd] }];
-      }
-      const updated = [...prev];
-      const existing = updated[idx];
-      const unitIdx = existing.units?.findIndex((u) => u.id === unitToAdd.id) ?? -1;
-      if (unitIdx === -1) {
-        updated[idx] = {
-          ...existing,
-          units: [...(existing.units ?? []), unitToAdd],
-        };
-      } else {
-        const newUnits = [...(existing.units ?? [])];
-        newUnits[unitIdx] = {
-          ...newUnits[unitIdx],
-          price: unitToAdd.price,
-          quantity: (newUnits[unitIdx].quantity || 0) + quantity,
-        };
-        updated[idx] = { ...existing, units: newUnits };
-      }
-      return updated;
+  const handleAdd = () => {
+    if (!product || !selectedUnit) return;
+    if (quantity < 1) return;
+    if (quantity > remaining) {
+      toast.error(
+        remaining === 0
+          ? `Stok ${selectedUnit.unitName} habis`
+          : `Hanya tersisa ${remaining} ${selectedUnit.unitName}`,
+      );
+      return;
+    }
+    addToCart({
+      productId: product.id,
+      productUnitId: selectedUnit.id,
+      productName: product.name,
+      unitName: selectedUnit.unitName,
+      price: selectedUnit.price,
+      quantity,
     });
-
     toast.success(
-      `${draft.name} · ${selectedUnit.unitName} ×${quantity} masuk keranjang`,
+      `${product.name} · ${selectedUnit.unitName} ×${quantity} masuk keranjang`,
     );
     setQuantity(1);
   };
@@ -128,12 +108,11 @@ const SelectedProductModal: React.FC<SelectedProductModalProps> = ({
         </span>
       }
     >
-      {draft && selectedUnit ? (
+      {product && selectedUnit ? (
         <div className="grid grid-cols-1 md:grid-cols-[336px_1fr] gap-6">
-          {/* ===== Image panel ===== */}
+          {/* Image panel */}
           <div className="flex flex-col gap-3">
             <div className="relative aspect-square rounded-2xl border border-border bg-muted/50 overflow-hidden">
-              {/* variant-aware visual — cross-fades on selection change */}
               <div
                 key={selectedUnit.id}
                 className="absolute inset-0 flex items-center justify-center p-10 animate-in fade-in zoom-in-95 duration-300 ease-out"
@@ -142,7 +121,7 @@ const SelectedProductModal: React.FC<SelectedProductModalProps> = ({
                   <Image
                     src={selectedUnit.imageUrl}
                     fill
-                    alt={`${draft.name} ${selectedUnit.unitName}`}
+                    alt={`${product.name} ${selectedUnit.unitName}`}
                     className="object-cover"
                     draggable={false}
                     sizes="336px"
@@ -152,24 +131,24 @@ const SelectedProductModal: React.FC<SelectedProductModalProps> = ({
                 )}
               </div>
 
-              {draft.category && (
+              {product.category && (
                 <span className="absolute top-3 left-3 px-2.5 py-1 rounded-lg bg-card/90 backdrop-blur border border-border text-[10px] uppercase tracking-wide font-medium text-muted-foreground">
-                  {draft.category}
+                  {product.category}
                 </span>
               )}
 
-              {(cartQtyByUnit[selectedUnit.id] || 0) > 0 && (
+              {selectedCartQty > 0 && (
                 <span className="absolute top-3 right-3 px-2.5 py-1 rounded-lg bg-success text-success-foreground text-xs font-semibold tnum shadow-card">
-                  {cartQtyByUnit[selectedUnit.id]} di keranjang
+                  {selectedCartQty} di keranjang
                 </span>
               )}
 
               <div className="absolute bottom-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-card/90 backdrop-blur border border-border text-xs font-medium">
-                {selectedUnit.unitName}
+                {selectedUnit.unitName} · Stok{" "}
+                <span className="tnum">{selectedStock}</span>
               </div>
             </div>
 
-            {/* variant thumbnails */}
             {units.length > 1 && (
               <div className="grid grid-cols-4 gap-2">
                 {units.map((u) => {
@@ -180,7 +159,7 @@ const SelectedProductModal: React.FC<SelectedProductModalProps> = ({
                       type="button"
                       onClick={() => {
                         setSelectedUnitId(u.id);
-                        setEditingPrice(false);
+                        setQuantity(1);
                       }}
                       aria-label={`Pilih ${u.unitName}`}
                       className={cn(
@@ -191,7 +170,7 @@ const SelectedProductModal: React.FC<SelectedProductModalProps> = ({
                       )}
                     >
                       <UnitArtwork unitName={u.unitName} />
-                      {(cartQtyByUnit[u.id] || 0) > 0 && (
+                      {(cartQtyByUnit[u.id] ?? 0) > 0 && (
                         <span className="absolute -top-1.5 -right-1.5 h-4.5 min-w-4.5 px-1 inline-flex items-center justify-center rounded-full bg-success text-success-foreground text-[10px] font-bold tnum">
                           {cartQtyByUnit[u.id]}
                         </span>
@@ -203,23 +182,17 @@ const SelectedProductModal: React.FC<SelectedProductModalProps> = ({
             )}
           </div>
 
-          {/* ===== Details ===== */}
+          {/* Details */}
           <div className="flex flex-col min-w-0">
             <h2 className="text-2xl font-semibold tracking-tight leading-tight">
-              {draft.name}
+              {product.name}
             </h2>
-            {draft.description && (
+            {product.description && (
               <p className="text-sm text-muted-foreground mt-1.5 leading-relaxed">
-                {draft.description}
-              </p>
-            )}
-            {productCartQty > 0 && (
-              <p className="text-xs text-success font-medium mt-2 tnum">
-                {productCartQty} unit produk ini sudah di keranjang
+                {product.description}
               </p>
             )}
 
-            {/* Variant selector */}
             <div className="mt-5">
               <div className="flex items-baseline justify-between mb-2">
                 <h3 className="text-sm font-semibold">Pilih Satuan</h3>
@@ -230,13 +203,14 @@ const SelectedProductModal: React.FC<SelectedProductModalProps> = ({
               <div className="grid grid-cols-2 gap-2">
                 {units.map((u) => {
                   const active = u.id === selectedUnit.id;
+                  const stock = stockByUnit[u.id] ?? 0;
                   return (
                     <button
                       key={u.id}
                       type="button"
                       onClick={() => {
                         setSelectedUnitId(u.id);
-                        setEditingPrice(false);
+                        setQuantity(1);
                       }}
                       className={cn(
                         "flex items-center gap-2.5 rounded-xl border p-2.5 text-left press-down transition-all",
@@ -253,7 +227,7 @@ const SelectedProductModal: React.FC<SelectedProductModalProps> = ({
                           {u.unitName}
                         </span>
                         <span className="block text-xs text-muted-foreground tnum">
-                          {formatRp(u.price)}
+                          {formatRp(u.price)} · Stok {stock}
                         </span>
                       </span>
                       {active && (
@@ -265,55 +239,15 @@ const SelectedProductModal: React.FC<SelectedProductModalProps> = ({
               </div>
             </div>
 
-            {/* Price (editable) */}
-            <div className="mt-4 flex items-center justify-between rounded-xl border border-border bg-muted/40 px-4 py-3">
-              <div className="min-w-0">
-                <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
-                  Harga · {selectedUnit.unitName}
-                </p>
-                {editingPrice ? (
-                  <InputNumber<number>
-                    autoFocus
-                    size="middle"
-                    className="mt-1 w-44!"
-                    value={selectedUnit.price}
-                    min={0}
-                    controls={false}
-                    onChange={(v) => updateUnit(selectedUnit.id, { price: v ?? 0 })}
-                    onPressEnter={() => setEditingPrice(false)}
-                    formatter={(v) =>
-                      v
-                        ? `Rp ${v.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}`
-                        : ""
-                    }
-                    parser={(v) => Number(v?.replace(/[^\d]/g, "") || "0")}
-                  />
-                ) : (
-                  <p className="text-2xl font-semibold tnum tracking-tight">
-                    {formatRp(selectedUnit.price)}
-                  </p>
-                )}
-              </div>
-              <button
-                type="button"
-                onClick={() => setEditingPrice((v) => !v)}
-                className={cn(
-                  "inline-flex h-9 w-9 items-center justify-center rounded-lg border transition-colors press-down",
-                  editingPrice
-                    ? "bg-foreground text-background border-foreground"
-                    : "border-border bg-card hover:bg-accent text-muted-foreground",
-                )}
-                aria-label={editingPrice ? "Selesai ubah harga" : "Ubah harga"}
-              >
-                {editingPrice ? (
-                  <Check className="h-4 w-4" />
-                ) : (
-                  <Pencil className="h-4 w-4" />
-                )}
-              </button>
+            <div className="mt-4 rounded-xl border border-border bg-muted/40 px-4 py-3">
+              <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
+                Harga · {selectedUnit.unitName}
+              </p>
+              <p className="text-2xl font-semibold tnum tracking-tight">
+                {formatRp(selectedUnit.price)}
+              </p>
             </div>
 
-            {/* Quantity + subtotal */}
             <div className="mt-4 flex items-center justify-between">
               <div>
                 <p className="text-[11px] uppercase tracking-wide text-muted-foreground mb-1.5">
@@ -358,7 +292,16 @@ const SelectedProductModal: React.FC<SelectedProductModalProps> = ({
               </div>
             </div>
 
-            {/* Actions */}
+            {remaining < 1 ? (
+              <p className="mt-2 text-[11px] text-destructive font-medium">
+                Stok tidak mencukupi
+              </p>
+            ) : quantity > remaining ? (
+              <p className="mt-2 text-[11px] text-warning-foreground font-medium tnum">
+                Maks {remaining} dapat ditambahkan
+              </p>
+            ) : null}
+
             <div className="mt-auto pt-5 grid grid-cols-3 gap-2">
               <button
                 type="button"
@@ -369,10 +312,12 @@ const SelectedProductModal: React.FC<SelectedProductModalProps> = ({
               </button>
               <button
                 type="button"
-                onClick={handleAddToCart}
+                onClick={handleAdd}
+                disabled={remaining < 1 || quantity > remaining}
                 className={cn(
                   "col-span-2 h-12 rounded-xl text-sm font-semibold inline-flex items-center justify-center gap-2 press-down",
                   "bg-foreground text-background hover:bg-foreground/90",
+                  "disabled:bg-muted disabled:text-muted-foreground disabled:cursor-not-allowed",
                 )}
               >
                 <ShoppingCart className="h-4 w-4" />
@@ -388,6 +333,6 @@ const SelectedProductModal: React.FC<SelectedProductModalProps> = ({
       )}
     </Modal>
   );
-};
+}
 
-export default SelectedProductModal;
+export type { Product };

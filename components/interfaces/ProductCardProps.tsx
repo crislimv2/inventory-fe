@@ -7,4 +7,7 @@ interface ProductCardProps {
   priceFrom?: number;
   category?: string;
   unavailable?: boolean;
+  stock?: number;
+  lowStock?: boolean;
+  outOfStock?: boolean;
 }
